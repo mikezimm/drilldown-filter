@@ -116,7 +116,6 @@ public constructor(props:IErrorsProps){
                 <h2></h2>
                 <table className={styles.infoTable}>
                     <tr><th>Issue</th><th>Links</th><th>Notes</th></tr>
-                    <tr><td>Times are off, like incorrect time-zone</td><td>{ links.blogSPTimeZone } </td><td>You need to update your psersonal time zone in Delve (Office 365), see the linked post.  Scroll down to Personal Setting Option 2, set your personal regional time zon</td></tr>
                           
                 </table>
             </div>;

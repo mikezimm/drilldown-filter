@@ -121,24 +121,20 @@ public constructor(props:IGettingStartedProps){
                     parentListName={ this.props.parentState.drillList.name }
             ></WebPartLinks>
 
-            <h2>First:  Create a Parent List and Child List in your site</h2>
+            <h2>First:  Create a Parent List or Library in your site</h2>
                 <ol>
                     <li>Go to <b>WebPart Properties</b> - Edit Page, Edit Webpart.</li>
                     <li>Expand <b>Create-Verify Lists</b> section.</li>
-                    <li>Press <b>Create-Verify Projects List</b> button.</li>
-                    <li>Press <b>Create-Verify Child List</b> button.</li>
+                    <li>Press <b>Create-Verify List</b> button.</li>
+                    <li>Fill in your Refiner Fields</li>
+                    <li>Fill in your Rules - optional settings telling us how to handle certain field types</li>
+                    <li>Choose your refiner style</li>
+
                     <li>Exit <b>WebPart Properties</b></li>
                     <li><b>Save</b> this page.</li>
                     <li><b>Refresh</b> this page.</li>
                 </ol>
 
-            <h2>Second:  Create some Parents in the Parents list</h2>
-                <ol>
-                    <li>Go to <b>Parent List</b> section in this guide and review what the columns do.</li>
-                    <li>Go to your <Link href={this.props.parentState.webURL} target='_blank'>{ this.props.parentProps.listName }
-                        </Link> and create some new Parents.
-                    </li>
-                </ol>
 
           </div>;
 

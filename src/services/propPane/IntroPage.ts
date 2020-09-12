@@ -16,7 +16,7 @@ import {
 import * as strings from 'DrilldownWebPartStrings';
 import { pivotOptionsGroup} from './index';
 
-import * as links from '../../webparts/drilldown/components/HelpInfo/AllLinks';   //              { links.gitRepoGenericWebpart.issues }
+import * as links from '../../webparts/drilldown/components/HelpInfo/AllLinks';   //              { links.gitRepoDrilldownWebpart.issues }
 
 import { IDrilldownWebPartProps } from '../../webparts/drilldown/DrilldownWebPart';
 
@@ -88,9 +88,9 @@ export class IntroPage {
             }),
 
             PropertyPaneLink('About Link' , {
-              text: 'Github Repo:  ' + links.gitRepoGenericWebpart.desc ,
-              href: links.gitRepoGenericWebpart.href,
-              target: links.gitRepoGenericWebpart.target,
+              text: 'Github Repo:  ' + links.gitRepoDrilldownWebpart.desc ,
+              href: links.gitRepoDrilldownWebpart.href,
+              target: links.gitRepoDrilldownWebpart.target,
             }),
           ]
         },

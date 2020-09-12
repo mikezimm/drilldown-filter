@@ -113,7 +113,7 @@ public constructor(props:IFuturePlansProps){
             thisPage =     <div className={styles.infoPane}>
 
             <h3>Please submit any issues or suggestions on github (requires free account)</h3>
-              { links.gitRepoGenericWebpart.issues }
+              { links.gitRepoDrilldownWebpart.issues }
                         
             <h3>FUTURE Use columns (Projects as Tasks):  These may be used in the future for advanced functionality.</h3>
               <ul>

@@ -116,30 +116,8 @@ public constructor(props:IBasicsProps){
             thisPage =     <div className={styles.infoPane}>
 
             <h3>Please submit any issues or suggestions on github (requires free account)</h3>
-            { links.gitRepoGenericWebpart.issues }
-        
-            <h2>Creating Projects in GenericWebpart, how they work</h2>
-              <p>Projects can be created and used in any way you want.  This guide just explains some of the special features of different columns, and how the webpart uses them to your advantage.</p>
-            <h3>SPECIAL Columns:  These have special uses and may overlap depending on how you use them.</h3>
+            { links.gitRepoDrilldownWebpart.issues }
 
-              <ul>
-                <li><span className={styles.iColNamV}>TBD Col:</span>TBD More Info.</li>
-              </ul>
-              
-            <h3>GENERAL Columns:  These help identify/filter projects in the webpart.</h3>
-              <ul>
-                <li><span className={styles.iColNam}>Title:</span>This is the text visible in the webpart.  Must be unique per item in Project List.</li>
-                <li><span className={styles.iColNam}>Active:</span>If Active=No, project will automatically be moved to "InActive" heading.</li>
-                <li><span className={styles.iColNam}>Leader:</span>Only one leader is allowed per project item.  These projects can be found in "Yours" heading.</li>
-                <li><span className={styles.iColNam}>Team:</span>Multiple people are allowed in this column.  If your name is in this column, the project will under "Your Team" heading.</li>
-              </ul>
-        
-            <h3>FUTURE Plans - See that page for more details</h3>
-              <ul>
-                <li><span className={styles.iColNam}>TBD More Info:</span>TBD More Details</li>
-              </ul>
-
-        
           </div>;
 
 

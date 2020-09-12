@@ -20,8 +20,12 @@ import { ITheTime } from '../../../../services/dateServices';
 
 import styles from '../Contents/contents.module.scss';
 
+import InfoPage from '../HelpInfo/infoPages';
+
 import ButtonCompound from '../createButtons/ICreateButtons';
 import { IButtonProps, ISingleButtonProps, IButtonState } from "../createButtons/ICreateButtons";
+
+import { createIconButton } from "../createButtons/IconButton";
 
 import { createAdvancedContentChoices } from '../fields/choiceFieldBuilder';
 
@@ -190,6 +194,8 @@ export interface IDrillDownState {
 
     allLoaded: boolean;
 
+    showTips: boolean;
+
     currentPage: string;
     searchCount: number;
 
@@ -277,6 +283,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             WebpartWidth:  this.props.WebpartElement.getBoundingClientRect().width - 50 ,
 
             drillList: drillList,
+
+            showTips: false,
 
             allowOtherSites: this.props.allowOtherSites === true ? true : false,
             currentPage: 'Click Button to start',
@@ -379,6 +387,17 @@ public componentDidUpdate(prevProps){
 
             let thisPage = null;
 
+            let toggleTipsButton = createIconButton('Help','Toggle Tips',this.toggleTips.bind(this), null, null );
+
+            const infoPage = <div>
+            <InfoPage 
+                allLoaded={ true }
+                showInfo={ true }
+                parentProps= { this.props }
+                parentState= { this.state }
+            ></InfoPage>
+            </div>;
+
             let errMessage = this.state.errMessage === '' ? null : <div>
                 { this.state.errMessage }
             </div>;
@@ -476,8 +495,12 @@ public componentDidUpdate(prevProps){
 
                 thisPage = <div className={[styles.contents, stylesD.drillDown].join(' ')}>
                     <div>
+                        <div className={styles.floatRight}>{ toggleTipsButton }</div>
                         <div className={ this.state.errMessage === '' ? styles.hideMe : styles.showErrorMessage  }>{ this.state.errMessage } </div>
                             {  /* <p><mark>Check why picking Assists does not show Help as a chapter even though it's the only chapter...</mark></p> */ }
+                            <div className={( this.state.showTips ? '' : styles.hideMe )}>
+                                { infoPage }
+                            </div>
                             <Stack horizontal={true} wrap={true} horizontalAlign={"space-between"} verticalAlign= {"center"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
                                 { searchBox } { toggles }
                             </Stack>
@@ -1086,5 +1109,14 @@ public componentDidUpdate(prevProps){
             style: newStyle,
         });
     }
+
+    public toggleTips = (item: any): void => {
+        //This sends back the correct pivot category which matches the category on the tile.
+      
+        this.setState({
+          showTips: !this.state.showTips,
+        });
+      
+      } //End toggleTips  
 
 }

@@ -127,16 +127,7 @@ public constructor(props:IInfoAboutMeProps){
                 {/* 3 files to update version number:  package-solution.json, package-lock.json, package.json*/}
                 <table className={styles.infoTable}>
                     <tr><th>Date</th><th>Version</th><th>Focus</th><th>Notes</th></tr>
-                    <tr><td>2020-09-10</td><td>{'1.1.6.1'}</td><td>Add experimental DrillDown</td><td>With basic Pivot and Command bar options</td></tr>
-                    <tr><td>2020-08-31</td><td>{'1.1.5.1'}</td><td>Add Groups and Users tab</td><td>Also refactor HoverCard code and others</td></tr>
-                    <tr><td>2020-08-31</td><td>{'1.1.4.1'}</td><td>Add Features Tab</td><td>Improved WebParts tab as well</td></tr>
-                    <tr><td>2020-08-14</td><td>{'1.1.3.1'}</td><td>Add Groups Tab</td><td>Includes getting Users based on groups</td></tr>
-                    <tr><td>2020-08-14</td><td>{'1.1.2.2'}</td><td>Add Webs and ThisSite</td><td>2.2 fixed WebParts error</td></tr>
-                    <tr><td>2020-08-14</td><td>{'1.1.1.1'}</td><td>Columns almost done</td><td>Also moved WebParts under Contents pivot</td></tr>
-                    <tr><td>2020-08-09</td><td>{'1.1.1.0'}</td><td>List Contents Updated, almost done</td><td>Set as default component, added Advanced and Rails Off mode</td></tr>
-                    <tr><td>2020-08-09</td><td>{'1.1.0.0'}</td><td>Contents added</td><td>Nothing special</td></tr>
-                    <tr><td>2020-08-07</td><td>{'1.0.0.0'}</td><td>Web Parts and Pages start</td><td>Nothing special</td></tr>
-                    <tr><td>2020-07-27</td><td>{'1.0.0.0'}</td><td>Intial Build</td><td>Nothing special</td></tr>
+                    <tr><td>2020-09-12</td><td>{'1.0.0.1'}</td><td>Baseline Drilldown from Generic Project</td><td>With basic Pivot and Command bar options</td></tr>
                 </table>
             </div>;
 
