@@ -93,6 +93,7 @@ function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: bo
         name: items[index].name,
         icon: items[index].icon ? items[index].icon : null,
         checked: items[index].name === checkedItem ? true : false,
+        ariaLabel: items[index].name,
         commandBarButtonAs: items[index].icon ? customButtonWithIcon : customButtonNoIcon,
         onClick: onClick,
       };
@@ -222,6 +223,7 @@ public componentDidUpdate(prevProps){
                     <CommandBarButton 
                       role="menuitem"
                       text={item.name} 
+                      ariaLabel={item.name}
                       iconProps={{ iconName: item.icon }} 
                       onClick={ this.props.onClick } 
                       checked={item.checked} />
