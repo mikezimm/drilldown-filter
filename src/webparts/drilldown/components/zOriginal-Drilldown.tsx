@@ -1,12 +1,12 @@
 import * as React from 'react';
-import styles from './DrillDown.module.scss';
-import { IDrillDownProps } from './IDrillDownProps';
+import styles from './zOriginal-Drilldown.module.scss';
+import { IDrilldownProps } from './zOriginal-IDrilldownProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 
-export default class DrillDown extends React.Component<IDrillDownProps, {}> {
-  public render(): React.ReactElement<IDrillDownProps> {
+export default class Drilldown extends React.Component<IDrilldownProps, {}> {
+  public render(): React.ReactElement<IDrilldownProps> {
     return (
-      <div className={ styles.drillDown }>
+      <div className={ styles.drilldown }>
         <div className={ styles.container }>
           <div className={ styles.row }>
             <div className={ styles.column }>

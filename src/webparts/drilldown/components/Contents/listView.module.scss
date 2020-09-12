@@ -1,0 +1,95 @@
+
+@import '../../../../../node_modules/office-ui-fabric-react/dist/sass/_References';
+
+//2020-05-19:  Copied from Socialiis7/Master CommandBar.tsx
+
+.logListView {
+
+
+  //https://stackoverflow.com/a/2248908
+  tr:hover td {
+    background-color: darkgray; color: #000;
+  }
+
+  tr td {
+    border: 0px !important;
+  }
+
+  .listButtons {
+
+    background-color: white !important;
+  /*  
+    td {
+      background-color: white !important;
+    }
+*/
+    .buttons{
+      //padding-right: 10px;
+      -webkit-font-smoothing: antialiased;
+      transition:all 0.4s ease;
+      border-radius: 5px;
+      :hover{
+        background-color: greenyellow;
+        transition:all 0.4s ease;
+        border-radius: 5px;
+      }
+    }
+  }
+
+  .showMe {
+    display: block
+  }
+
+  .showCell {
+    display: table-cell
+  }
+
+  .hideMe {
+    display: none
+  }
+
+  .fieldWithIconButton{
+      position: relative;
+  }
+  
+  .hoverCard {
+    margin: 10px;
+    width: 200;
+    height: '100%';
+    display: 'flex';
+    align-items: 'center';
+    justify-content: 'center';
+    
+    .assignedTo {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+  }
+
+  .toggleRow {
+    label {
+      font-weight: bold;
+    }
+  }
+
+  .nowWrapping {
+    white-space: 'nowrap',
+  }
+  
+  .icon {
+    height: 18px;
+    line-height: 18px;
+  }
+
+  .leftListItemIconN {
+    color: "";
+    font-size: 16;
+    font-weight: 'inherit';
+  }
+  
+  .isBold  {
+    font-weight: 700;
+  }
+
+}

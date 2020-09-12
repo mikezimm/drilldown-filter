@@ -1,0 +1,179 @@
+@import '~office-ui-fabric-react/dist/sass/References.scss';
+
+//Copied to chartsPage.module.scss so it can be more stand alone.
+
+.infoPane {
+
+
+    .infoTable {
+  
+      tr {
+        padding-top: 0px;
+      }
+  
+      tr :hover {
+        background-color: lightgray;
+        transition:all 0.4s ease;
+      }
+  
+      th {
+        @extend .headerPadding;
+        color: black;
+        background-color: lightgray;
+        border: none;
+      }
+  
+      td {
+        @extend .cellPadding;
+      }
+  
+    }
+
+    .infoTableTHRed {
+      @extend .infoTable;
+      th {
+        color: red;
+      }
+  
+    }
+
+    .cellPadding {
+      padding-left: 20px;
+      padding-right: 20px;
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+
+    .headerPadding {
+      padding-left: 20px;
+      padding-right: 20px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    
+
+    .iColNam{
+      font-weight: bolder;
+      padding-left: 10px;
+      padding-right: 20px;
+    }
+  
+    .iColNamU {
+      @extend .iColNam;
+      color: red;
+    } 
+  
+    .iColNamV {
+      @extend .iColNam;
+      color: green;
+    } 
+  
+    .iColNamH {
+      @extend .iColNam;
+      color: blue;
+    } 
+  
+    .infoPane {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+}
+
+// define variables first
+//https://docs.microsoft.com/en-us/sharepoint/dev/spfx/use-theme-colors-in-your-customizations#available-theme-tokens-and-their-occurances
+$themePrimary: '[theme:themePrimary, default:#0078d7]';
+$themeWhite: '[theme:white, default:white]';
+
+.infoPaneTight {
+
+  .infoHeading {
+    font-size: 24px;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    width: 100%;
+    font-weight: 500;
+    background-color: $themePrimary;
+    color: $themeWhite;
+
+    #myTableTitle {
+      padding-left: 20px;
+    }
+
+  }
+
+  .infoTable {
+
+    tr {
+      padding-top: 0px;
+    }
+
+    tr :hover {
+      background-color: lightgray;
+      transition:all 0.4s ease;
+    }
+
+    th {
+      @extend .headerPadding;
+      color: black;
+      background-color: lightgray;
+      border: none;
+      text-align: left;
+    }
+
+    td {
+      @extend .cellPadding;
+    }
+
+  }
+
+  .infoTableTHRed {
+    @extend .infoTable;
+    th {
+      color: red;
+    }
+
+  }
+
+  .cellPadding {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 2px;
+    padding-bottom: 5px;
+  }
+
+  .headerPadding {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  
+
+  .iColNam{
+    font-weight: bolder;
+    padding-left: 10px;
+    padding-right: 20px;
+  }
+
+  .iColNamU {
+    @extend .iColNam;
+    color: red;
+  } 
+
+  .iColNamV {
+    @extend .iColNam;
+    color: green;
+  } 
+
+  .iColNamH {
+    @extend .iColNam;
+    color: blue;
+  } 
+
+  .infoPane {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+}

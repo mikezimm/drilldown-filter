@@ -1,53 +1,87 @@
 # drilldown-filter
 
-This project uses [React](https://reactjs.org).
+## Summary
 
-> This is where you include your project's documentation.
+Gives more complete look at site and list settings without going to all the screens.
 
-## Global dependencies
+[picture of the solution in action, if possible]
 
-Requires Gulp globally installed:
+## Used SharePoint Framework Version
 
-```shell
-npm install --global gulp
+![version](https://img.shields.io/badge/version-1.11-green.svg)
+
+## Applies to
+
+- [SharePoint Framework](https://aka.ms/spfx)
+- [Microsoft 365 tenant](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/set-up-your-developer-tenant)
+
+> Get your own free development tenant by subscribing to [Microsoft 365 developer program](http://aka.ms/o365devprogram)
+
+## Prerequisites
+
+> Any special pre-requisites?
+
+## Solution
+
+Solution|Author(s)
+--------|---------
+folder name | Author details (name, company, twitter alias with link)
+
+## Version history
+
+Version|Date|Comments
+-------|----|--------
+1.0|January 29, 2021|Initial release
+
+## Disclaimer
+
+**THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.**
+
+---
+
+
+## Installation steps
 ```
-
-## Building the code
-
-Download & install all dependencies, build, bundle & package the project
-
-```shell
-# download & install dependencies
+yo @microsoft/sharepoint --skip-install
 npm install
-
-# transpile all TypeScript & SCSS => JavaScript & CSS
-gulp build
-
-# create component bundle & manifest
-gulp bundle
-
-# create SharePoint package
-gulp package-solution
+npm install @pnp/sp @pnp/graph --save
+npm install @pnp/spfx-controls-react --save --save-exact
+npm install @pnp/spfx-property-controls
+npm install --save office-ui-fabric-react
+npm install webpack-bundle-analyzer --save-dev
 ```
 
-These commands produce the following:
+After installing webpack analyzer, be sure to update the gulpfile.js so it actually builds the map.
 
-- **./lib**: intermediate-stage commonjs build artifacts
-- **./dist**: bundled script, along with other resources
-- **./temp/deploy**: all resources required by component(s) to deploy to a CDN (when `--ship` argument present)
 
-## Build options
+## Minimal Path to Awesome
 
-- `gulp clean`: Deletes all build output (**/dist**, **/lib**, **/temp**, etc.).
-- `gulp build`: Transpiles all TypeScript & SCSS to JavaScript & CSS, generates source map files & TypeScript type declaration files
-- `gulp bundle [--ship|-p|--production]`: Runs gulp task **build**, then uses webpack to create the JavaScript bundle(s) and component manifest(s) as defined in **./config/config.json**. The `--ship`, `-p` or `--production` argument specifies a production build that will generate minified bundles.
-- `gulp serve [--ship|-p|--production]`: Runs gulp tasks **build**, **bundle** & starts the local webserver. Depending on the project type, it opens the browser and navigates to the local workbench or specified URL (in the case of extension components). The `--ship`, `-p` or `--production` argument specifies a production build that modifies the resulting package for production hosting rather than local hosting of assets.
-- `gulp package-solution`: Creates the SharePoint Package (**.sppkg**) file.
-- `gulp dist`: Creates a production-ready SharePoint Package (**.sppkg**) file. The following gulp task gets executed in this specific order `gulp clean`, `gulp bundle`, `gulp package-solution.`
-- `gulp dev`: Creates a development-ready SharePoint Package (**.sppkg**) file. The following gulp task will be executed in this specific order `gulp clean`, `gulp bundle`, `gulp package-solution.`
+- Clone this repository
+- Ensure that you are at the solution folder
+- in the command-line run:
+  - **npm install**
+  - **gulp serve**
 
-> View all available gulp tasks by running `gulp --tasks`
+> Include any additional steps as needed.
 
-More information on [SharePoint Framework](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/sharepoint-framework-overview)
+## Features
 
-Generated with [pnp/spfx](https://github.com/pnp/generator-spfx/).
+Description of the extension that expands upon high-level summary above.
+
+This extension illustrates the following concepts:
+
+- topic 1
+- topic 2
+- topic 3
+
+> Notice that better pictures and documentation will increase the sample usage and the value you are providing for others. Thanks for your submissions advance.
+
+> Share your web part with others through Microsoft 365 Patterns and Practices program to get visibility and exposure. More details on the community, open-source projects and other activities from http://aka.ms/m365pnp.
+
+## References
+
+- [Getting started with SharePoint Framework](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/set-up-your-developer-tenant)
+- [Building for Microsoft teams](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/build-for-teams-overview)
+- [Use Microsoft Graph in your solution](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/web-parts/get-started/using-microsoft-graph-apis)
+- [Publish SharePoint Framework applications to the Marketplace](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/publish-to-marketplace-overview)
+- [Microsoft 365 Patterns and Practices](https://aka.ms/m365pnp) - Guidance, tooling, samples and open-source controls for your Microsoft 365 development

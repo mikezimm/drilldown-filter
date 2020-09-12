@@ -1,30 +1,10 @@
 {
-  "@pnp/generator-spfx": {
-    "framework": "react",
-    "pnpFramework": "reactjs.plus",
-    "pnp-libraries": [
-      "@pnp/pnpjs",
-      "@pnp/spfx-property-controls",
-      "spfx-uifabric-themes",
-      "@pnp/spfx-controls-react",
-      "ouifr@6fluent",
-      "rush@3.3"
-    ],
-    "pnp-ci": "no-devops",
-    "pnp-vetting": [
-      "webpack-analyzer",
-      "stylelint"
-    ],
-    "spfxenv": "spo",
-    "pnp-testing": []
-  },
   "@microsoft/generator-sharepoint": {
-    "environment": "spo",
-    "framework": "react",
     "isCreatingSolution": true,
+    "environment": "spo",
     "version": "1.11.0",
     "libraryName": "drilldown-filter",
-    "libraryId": "59d4b450-8632-45c5-9616-6287a24ea1ab",
+    "libraryId": "d4057ae5-a260-451d-b481-b98442c72277",
     "packageManager": "npm",
     "isDomainIsolated": false,
     "componentType": "webpart"
