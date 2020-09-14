@@ -47,6 +47,10 @@ import { getHelpfullError, } from '../../../../services/ErrorHandler';
 
 import MyDrillItems from './drillListView';
 
+import ReactListItems from './reactListView';
+
+//parentListFieldTitles
+
 import { getAllItems, buildRefinersObject } from './drillFunctions';
 
 import ResizeGroupOverflowSetExample from './refiners/commandBar';
@@ -499,6 +503,11 @@ public componentDidUpdate(prevProps){
                         blueBar={ blueBar }
                     ></MyDrillItems>
                     </div>;
+
+                let reactListItems = <ReactListItems 
+                    parentListFieldTitles={ this.props.parentListFieldTitles}
+                    items={ this.state.searchedItems}
+                ></ReactListItems>;
 
                 thisPage = <div className={[styles.contents, stylesD.drillDown].join(' ')}>
                     <div>

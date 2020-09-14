@@ -336,7 +336,11 @@ private _filterBy: any;
 
     //2020-05-13:  Remove Active since it's replaced with StatusTMT which is not applicable here
     let defFields = ["Title","Author","Editor","Created","Modified"];
-    let filterFields=["SSChoice1","SSChoiceA","MSChoice2","MSChoiceB"];
+    let filterFields=[]; //["SSChoice1","SSChoiceA","MSChoice2","MSChoiceB"];
+    if ( this.properties.refiner0 != '' ) { filterFields.push( this.properties.refiner0 ); }
+    if ( this.properties.refiner1 != '' ) { filterFields.push( this.properties.refiner1 ); }
+    if ( this.properties.refiner2 != '' ) { filterFields.push( this.properties.refiner2 ); }
+
     let allFields = defFields.concat(filterFields);
 
     let fieldTitles = r.filter(f => f.Hidden !== true && allFields.indexOf(f.StaticName) > -1).map( 
