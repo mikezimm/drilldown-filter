@@ -22,7 +22,10 @@
     "officeFabricIconFontName": "Page",
     "properties": {
       "description": "Drilldown",
-      "parentListTitle": "TrackMyTime"
+      "parentListTitle": "TrackMyTime",
+      "refiner0": "Story",
+      "refiner1": "Chapter",
+      "refiner2": "Created"
     }
   }]
 }

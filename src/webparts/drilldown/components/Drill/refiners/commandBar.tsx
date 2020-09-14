@@ -72,6 +72,7 @@ export interface ICMDItem {
   key: string;
   checked: boolean;
   icon?: string;
+  disabled?: boolean;
 }
 
 function  _functionOnClick(item){
@@ -93,6 +94,7 @@ function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: bo
         name: items[index].name,
         icon: items[index].icon ? items[index].icon : null,
         checked: items[index].name === checkedItem ? true : false,
+        disabled: items[index].disabled,
         ariaLabel: items[index].name,
         commandBarButtonAs: items[index].icon ? customButtonWithIcon : customButtonNoIcon,
         onClick: onClick,
@@ -225,6 +227,7 @@ public componentDidUpdate(prevProps){
                       text={item.name} 
                       ariaLabel={item.name}
                       iconProps={{ iconName: item.icon }} 
+                      disabled={ item.disabled } 
                       onClick={ this.props.onClick } 
                       checked={item.checked} />
 

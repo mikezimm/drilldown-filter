@@ -20,8 +20,15 @@ declare interface IDrilldownWebPartStrings {
   FieldLabel_ParentListTitle: string;
   FieldLabel_ParentListWeb: string;
 
-  FieldLabel_ChildListTitle: string;
-  FieldLabel_ChildListWeb: string;
+
+  FieldLabel_Refiner0: string;
+  FieldLabel_Refiner1: string;
+  FieldLabel_Refiner2: string;
+  
+  FieldLabel_RulesFind: string;
+  FieldLabel_Rule0: string;
+  FieldLabel_Rule1: string;
+  FieldLabel_Rule2: string;
 
   // 3 - General how accurate do you want this to be
 

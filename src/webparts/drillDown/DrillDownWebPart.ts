@@ -52,9 +52,12 @@ export interface IDrilldownWebPartProps {
   refiner1: string;
   refiner2: string;
 
-  rules0: string;
-  rules1: string;
-  rules2: string;
+  rules0: string[];
+  rules1: string[];
+  rules2: string[];
+
+  showDisabled?: boolean;
+  updateRefinersOnTextSearch?: boolean;
 
   parentListFieldTitles: string;
 
@@ -196,24 +199,27 @@ private _filterBy: any;
     //If it's undefined, null or '', get current page context value
     let parentWeb = this.properties.parentListWeb && this.properties.parentListWeb != '' ? this.properties.parentListWeb : this.context.pageContext.web.absoluteUrl;
 
-    let refiners: string[] = ['Story', 'Chapter', 'Created'];
+    let refiners: string[] = [];
 
+    if ( this.properties.refiner0 && this.properties.refiner0.length > 0 ) { refiners.push( this.properties.refiner0 ) ;}
+    if ( this.properties.refiner1 && this.properties.refiner1.length > 0 ) { refiners.push( this.properties.refiner1 ) ;}
+    if ( this.properties.refiner2 && this.properties.refiner2.length > 0 ) { refiners.push( this.properties.refiner2 ) ;}
 
     //Sample rules
     let rules1: RefineRuleValues[] = ['parseBySemiColons'];
     let rules2: RefineRuleValues[] = ['parseBySemiColons'];
-    let rules3: RefineRuleValues[] = ['groupByMonths'];
+    let rules3: RefineRuleValues[] = ['groupByMonthsMMM'];
 
 
     let rules = [];
-    if ( this.properties.rules0 && this.properties.rules0.length > 0 ) { rules.push ( this.properties.rules0.split(';')) ; } else { rules.push( []) ; }
-    if ( this.properties.rules1 && this.properties.rules1.length > 0 ) { rules.push ( this.properties.rules1.split(';')) ; } else { rules.push( []) ; }
-    if ( this.properties.rules2 && this.properties.rules2.length > 0 ) { rules.push ( this.properties.rules2.split(';')) ; } else { rules.push( []) ; }
+    if ( this.properties.rules0 && this.properties.rules0.length > 0 ) { rules.push ( this.properties.rules0 ) ; } else { rules.push( ['']) ; }
+    if ( this.properties.rules1 && this.properties.rules1.length > 0 ) { rules.push ( this.properties.rules1) ; } else { rules.push( ['']) ; }
+    if ( this.properties.rules2 && this.properties.rules2.length > 0 ) { rules.push ( this.properties.rules2) ; } else { rules.push( ['']) ; }
 
     let stringRules: string = JSON.stringify( rules );
 
     //Just for test purposes
-    stringRules = JSON.stringify( [rules1,rules2,rules3] );
+    //stringRules = JSON.stringify( [rules1,rules2,rules3] );
 
     const element: React.ReactElement<IDrillDownProps> = React.createElement(
       DrillDown,
@@ -241,6 +247,8 @@ private _filterBy: any;
         webURL: parentWeb,
 
         refiners: refiners,
+        showDisabled: this.properties.showDisabled,
+        updateRefinersOnTextSearch: this.properties.updateRefinersOnTextSearch ? this.properties.updateRefinersOnTextSearch : false,
 
         rules: stringRules,
 

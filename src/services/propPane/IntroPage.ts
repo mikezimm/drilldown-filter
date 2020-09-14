@@ -7,11 +7,12 @@ import {
   PropertyPaneLink, IPropertyPaneLinkProps,
   PropertyPaneDropdown, IPropertyPaneDropdownProps,
   IPropertyPaneDropdownOption,PropertyPaneToggle,
-  BaseClientSideWebPart,
   IPropertyPaneConfiguration,
   PropertyPaneButton,
   PropertyPaneButtonType,
-} from '@microsoft/sp-webpart-base';
+} from '@microsoft/sp-property-pane';
+
+import { PropertyFieldMultiSelect } from '@pnp/spfx-property-controls/lib/PropertyFieldMultiSelect';
 
 import * as strings from 'DrilldownWebPartStrings';
 import { pivotOptionsGroup} from './index';
@@ -20,6 +21,7 @@ import * as links from '../../webparts/drilldown/components/HelpInfo/AllLinks'; 
 
 import { IDrilldownWebPartProps } from '../../webparts/drilldown/DrilldownWebPart';
 
+import { refinerRuleItems } from '../../webparts/drilldown/components/IReUsableInterfaces';
 /*
 
   // 1 - Analytics options
@@ -73,6 +75,12 @@ import { IDrilldownWebPartProps } from '../../webparts/drilldown/DrilldownWebPar
 
 export class IntroPage {
   public getPropertyPanePage(webPartProps: IDrilldownWebPartProps, _onClickUpdateTitles ): IPropertyPanePage {
+
+    let ruleChoices = refinerRuleItems();
+    let showDisabled = false;
+
+    if ( webPartProps.rules2.indexOf('groupByDaysDDD') > -1 ||  webPartProps.rules2.indexOf('groupByMonthsMMM') > -1 ) { showDisabled = true;}
+
     return <IPropertyPanePage>
     { // <page1>
       header: {
@@ -163,15 +171,83 @@ export class IntroPage {
           PropertyPaneTextField('parentListTitle', {
             label: strings.FieldLabel_ParentListTitle
           }),
-          PropertyPaneTextField('childListWeb', {
-            label: strings.FieldLabel_ChildListWeb
+        ]}, // this group
+
+        { groupName: 'Performance Properties',
+        isCollapsed: true ,
+        groupFields: [
+          PropertyPaneToggle('updateRefinersOnTextSearch', {
+            label: 'Update Refiners on text search',
+            offText: 'No = Faster',
+            onText: 'Yes = Slower',
           }),
-          PropertyPaneTextField('childListTitle', {
-            label: strings.FieldLabel_ChildListTitle
+        ]}, // this group
+
+
+        //updateRefinersOnTextSearch
+/* */
+        
+//refinerRuleItems
+
+/**
+ * 
+"FieldLabel_Refiner0": "Refiner 1 Column Name",
+"FieldLabel_Refiner1": "Refiner 2 Column Name",
+"FieldLabel_Refiner2": "Refiner 3 Column Name",
+
+"FieldLabel_RulesFind": "See Help > Advanced for details",
+"FieldLabel_Rule0": "Refiner 1 Rules",
+"FieldLabel_Rule1": "Refiner 2 Rules",
+"FieldLabel_Rule2": "Refiner 3 Rules",
+ */
+
+
+        // 2 - Source and destination list information    
+        { groupName: 'Your Refiner info',
+        isCollapsed: true ,
+        groupFields: [
+          PropertyPaneLabel('Notice', {
+            text: 'Enter STATIC Name of column, pick any advanced coversion rules.',
+          }),
+          PropertyPaneLabel('Notice', {
+            text: strings.FieldLabel_RulesFind,
+          }),
+          PropertyPaneTextField('refiner0', {
+              label: strings.FieldLabel_Refiner0,
+          }),
+          PropertyFieldMultiSelect('rules0', {
+            key: 'rules0',
+            label: strings.FieldLabel_Rule0,
+            options: ruleChoices,
+            selectedKeys: webPartProps.rules0,
+          }),
+          PropertyPaneTextField('refiner1', {
+            label: strings.FieldLabel_Refiner1
+          }),
+          PropertyFieldMultiSelect('rules1', {
+            key: 'rules1',
+            label: strings.FieldLabel_Rule1,
+            options: ruleChoices,
+            selectedKeys: webPartProps.rules1,
+          }),
+          PropertyPaneTextField('refiner2', {
+            label: strings.FieldLabel_Refiner2
+          }),
+          PropertyFieldMultiSelect('rules2', {
+            key: 'rules2',
+            label: strings.FieldLabel_Rule2,
+            options: ruleChoices,
+            selectedKeys: webPartProps.rules2,
+          }),
+          PropertyPaneToggle('showDisabled', {
+            label: 'Show disabled GroupBy',
+            offText: '',
+            onText: '',
+            disabled: !showDisabled,
           }),
         ]}, // this group
 /* */
-        
+
         // 9 - Other web part options
         { groupName: 'Pivot Styles (headings)',
           isCollapsed: true ,

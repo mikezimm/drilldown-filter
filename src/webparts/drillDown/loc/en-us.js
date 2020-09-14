@@ -18,8 +18,14 @@ define([], function() {
     "FieldLabel_ParentListTitle": "Parent List Title",
     "FieldLabel_ParentListWeb": "Parent List Site URL",
 
-    "FieldLabel_ChildListTitle": "Time Tracking List Title",
-    "FieldLabel_ChildListWeb": "Time Tracking Site URL",
+    "FieldLabel_Refiner0": "Refiner 1 Static column Name",
+    "FieldLabel_Refiner1": "Refiner 2 Static column Name",
+    "FieldLabel_Refiner2": "Refiner 3 Static column Name",
+
+    "FieldLabel_RulesFind": "See Help > Advanced for details",
+    "FieldLabel_Rule0": "Refiner 1 Rules",
+    "FieldLabel_Rule1": "Refiner 2 Rules",
+    "FieldLabel_Rule2": "Refiner 3 Rules",
 
     // 3 - General how accurate do you want this to be
 

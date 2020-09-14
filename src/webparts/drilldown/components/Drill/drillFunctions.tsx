@@ -17,7 +17,7 @@ import { IMyView,  } from '../../../../services/listServices/viewTypes'; //Impor
 
 import { addTheseItemsToList, addTheseItemsToListInBatch } from '../../../../services/listServices/listServices';
 
-import { makeSmallTimeObject, makeTheTimeObject,ITheTime, getAge, getBestTimeDelta, isStringValidDate} from '../../../../services/dateServices';
+import { makeSmallTimeObject, makeTheTimeObject,ITheTime, getAge, getBestTimeDelta, isStringValidDate, monthStr3} from '../../../../services/dateServices';
 
 import { doesObjectExistInArray, addItemToArrayIfItDoesNotExist } from '../../../../services/arrayServices';
 
@@ -266,16 +266,19 @@ function getRefinerFromField ( fieldValue : any, ruleSet: RefineRuleValues[], em
                     reFormattedDate = tempDate.dayYYYYMMDD;
 
                 } else if ( ruleSet.indexOf('groupByWeeks') > -1 ) {
-                    reFormattedDate = tempDate.year + '-'+ tempDate.isoWeek;
+                    reFormattedDate = tempDate.year + '-'+ tempDate.week;
 
-                } else if ( ruleSet.indexOf('groupByMonths') > -1 ) {
+                } else if ( ruleSet.indexOf('groupByMonthsYYMM') > -1 ) {
                     reFormattedDate = tempDate.year + '-'+ ("0" + (tempDate.month + 1)).slice(-2) ;
 
+                } else if ( ruleSet.indexOf('groupByMonthsMMM') > -1 ) {
+                    reFormattedDate = monthStr3['en-us'][tempDate.month] ;
+
                 } else if ( ruleSet.indexOf('groupByYears') > -1 ) {
-                    reFormattedDate = tempDate.year;
+                    reFormattedDate = tempDate.year.toString();
 
                 } else if ( ruleSet.indexOf('groupByDayOfWeek') > -1 ) {
-                    reFormattedDate = tempDate.dayStr;
+                    reFormattedDate = tempDate.dayOfWeekDDD;
 
                 } else if ( ruleSet.indexOf('groupByDateBuckets') > -1 ) {
                     if ( tempDate.daysAgo > 360 ) {
@@ -288,7 +291,7 @@ function getRefinerFromField ( fieldValue : any, ruleSet: RefineRuleValues[], em
                         reFormattedDate = '\> 1 Week' ;
 
                     } else if ( tempDate.daysAgo > 1 ) {
-                        reFormattedDate = '\> 1 Day' ;                       
+                        reFormattedDate = '\> 1 Day' ;
                         
                     } else { reFormattedDate = 'Today' ; }
 

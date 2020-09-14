@@ -16,7 +16,7 @@ import { IContentsListInfo, IMyListInfo, IServiceLog, IContentsLists } from '../
 
 import { doesObjectExistInArray, addItemToArrayIfItDoesNotExist } from '../../../../services/arrayServices';
 
-import { ITheTime } from '../../../../services/dateServices';
+import { ITheTime, weekday3, monthStr3 } from '../../../../services/dateServices';
 
 import styles from '../Contents/contents.module.scss';
 
@@ -47,7 +47,7 @@ import { getHelpfullError, } from '../../../../services/ErrorHandler';
 
 import MyDrillItems from './drillListView';
 
-import { getAllItems } from './drillFunctions';
+import { getAllItems, buildRefinersObject } from './drillFunctions';
 
 import ResizeGroupOverflowSetExample from './refiners/commandBar';
 
@@ -150,6 +150,8 @@ export interface IDrillDownProps {
     // 2 - Source and destination list information
 
     refiners: string[]; //String of Keys representing the static name of the column used for drill downs
+    showDisabled?: boolean;
+    updateRefinersOnTextSearch?: boolean;
 
     /**    
      * 'parseBySemiColons' |
@@ -219,6 +221,7 @@ export interface IDrillDownState {
     WebpartWidth?:   number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
 
     refinerObj: IRefiners;
+    showDisabled?: boolean;
 
     pivotCats: IMyPivCat[][];
     cmdCats: ICMDItem[][];
@@ -307,6 +310,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             progress: null,
 
             refinerObj: {childrenKeys: this.props.refiners, childrenObjs: [] , multiCount: 0, itemCount: 0 },
+            showDisabled: this.props.showDisabled ? this.props.showDisabled : false,
 
             pivotCats: [],
             cmdCats: [],
@@ -349,6 +353,9 @@ public componentDidUpdate(prevProps){
       rebuildPart = true ;
     }
     if ( prevProps.WebpartHeight !== this.props.WebpartHeight || prevProps.WebpartWidth !== this.props.WebpartWidth ) {
+        rebuildPart = true ;
+      }
+      if ( prevProps.showDisabled !== this.props.showDisabled ) {
         rebuildPart = true ;
       }
     if (rebuildPart === true) {
@@ -569,7 +576,7 @@ public componentDidUpdate(prevProps){
         let pivotCats : any = [];
         let cmdCats : any = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
-        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, 0) );
+        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, 0 , 0 ) );
 
         this.setState({
             allItems: allItems,
@@ -783,7 +790,7 @@ public componentDidUpdate(prevProps){
     let prevMetaString = JSON.stringify( this.state.searchMeta );
     let thisMetaString = JSON.stringify( newMeta );
     let metaChanged = prevMetaString === thisMetaString ? false : true;
-
+    let refinerObj = this.state.refinerObj;
     /**
      * example of newMeta:
      * Clicking on 1st refiner:     newMeta: ["Daily"]
@@ -797,7 +804,7 @@ public componentDidUpdate(prevProps){
         let refinerTree = this.getCurrentRefinerTree( newMeta );
 
         pivotCats.push ( refinerTree[0].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-        cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[0], layer));
+        cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[0], layer, 0 ));
 
         if ( newMeta.length === 1 && newMeta[0] === 'All'){  //For some reason this was giving False when it should be true: if ( newMeta === ['All'] ) { }
             //Nothing is needed.
@@ -810,12 +817,12 @@ public componentDidUpdate(prevProps){
 
             if ( refinerTree.length > 1 ) { 
                 pivotCats.push ( refinerTree[1].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[1], layer));
+                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[1], layer, 1));
             }
 
             if ( refinerTree.length > 2 ) {
                 pivotCats.push ( refinerTree[2].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[2], layer));
+                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[2], layer, 2));
             }
         }
     } else {
@@ -823,6 +830,15 @@ public componentDidUpdate(prevProps){
         pivotCats = this.state.pivotCats;
         cmdCats = this.state.cmdCats;
     }
+
+    if ( this.props.updateRefinersOnTextSearch === true ) {
+        refinerObj = buildRefinersObject(newFilteredItems);
+        pivotCats = [];
+        cmdCats = [];
+        pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
+        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, 0 , 0 ) );
+    }
+
 
     searchCount = newFilteredItems.length;
 
@@ -833,6 +849,7 @@ public componentDidUpdate(prevProps){
       searchMeta: newMeta,
       pivotCats: pivotCats,
       cmdCats: cmdCats,
+      refinerObj: refinerObj,
 
     });
 
@@ -929,8 +946,14 @@ public componentDidUpdate(prevProps){
         this.getAllItemsCall();
     }
 
-
-    private convertRefinersToCMDs( newMeta: string[], refiners: string[], layer: number ) {
+    /**
+     * 
+     * @param newMeta 
+     * @param refiners 
+     * @param layer  - this is the layer that was clicked on?
+     * @param refLayer - this is the layer of this particular control
+     */
+    private convertRefinersToCMDs( newMeta: string[], refiners: string[], layer: number, refLayer: number ) {
         let result = [];
         result.push ({
             name: 'All',
@@ -939,11 +962,30 @@ public componentDidUpdate(prevProps){
             icon: null,
         });
 
-        refiners.map( i => {  
+        let makeRefiners : string[] = [];
+        let groupByDayOfWeek: any  = "groupByDayOfWeek" ;
+        let groupByMonth: any  = "groupByMonthsMMM" ;
+        let disabledItems: string[] = [];
+        if ( this.state.drillList.refinerRules[ refLayer ].indexOf( groupByDayOfWeek ) > -1 ) {
+            //Re-order by day of week:
+            weekday3['en-us'].map( d => {
+                if ( refiners.indexOf( d ) > - 1 ) { makeRefiners.push(d ); } else { if ( this.state.showDisabled === true ) { makeRefiners.push( d ); } disabledItems.push(d); }
+            });
+        } else if ( this.state.drillList.refinerRules[ refLayer ].indexOf( groupByMonth ) > -1 ) {
+            //Re-order by Month of year:
+            monthStr3['en-us'].map( d => {
+                if ( refiners.indexOf( d ) > - 1 ) { makeRefiners.push(d ); } else { if ( this.state.showDisabled === true ) { makeRefiners.push( d ); } disabledItems.push(d); }
+            });
+        } else {
+            makeRefiners = refiners.join().split(',');
+        }
+
+        makeRefiners.map( i => {  
             let thisItem : ICMDItem = {
                 name: i,
                 key: i,
                 checked: i === newMeta[layer] ? true : false ,
+                disabled: disabledItems.indexOf( i ) > -1 ? true : false,
                 icon: null,
             };
             return result.push(thisItem);

@@ -6,9 +6,37 @@ export interface IRefinerRules {
 
 export type RefineRuleValues = 
   'parseBySemiColons' | 'parseByCommas' | 'groupBy10s' |  'groupBy100s' |  'groupBy1000s' |  'groupByMillions' | 
-  'isDate' | 'groupByDays' | 'groupByWeeks' |  'groupByMonths' |  'groupByYears' | 'groupByDayOfWeek' |  'groupByDateBuckets' |
+  'isDate' | 'groupByDays' | 'groupByDaysDDD' | 'groupByWeeks' |  'groupByMonthsMMM' |    'groupByMonthsYYMM' |'groupByYears' | 'groupByDayOfWeek' |  'groupByDateBuckets' |
   'groupByUsers' | 'invalidRules' | ''
 ;
+
+export function buildKeyText( str: RefineRuleValues) {
+  return { key: str, text: str };
+}
+
+export function refinerRuleItems() {
+
+    let options = [];
+    options.push( buildKeyText( 'parseBySemiColons' ) );
+    options.push( buildKeyText( 'parseByCommas' ) );
+    options.push( buildKeyText( 'groupBy10s' ) );
+    options.push( buildKeyText( 'groupBy100s' ) );
+    options.push( buildKeyText( 'groupBy1000s' ) );
+    options.push( buildKeyText( 'groupByMillions' ) );
+    options.push( buildKeyText( 'isDate' ) );
+    options.push( buildKeyText( 'groupByDays' ) );
+    options.push( buildKeyText( 'groupByDaysDDD' ) );
+    options.push( buildKeyText( 'groupByWeeks' ) );
+    options.push( buildKeyText( 'groupByMonthsMMM' ) );
+    options.push( buildKeyText( 'groupByMonthsYYMM' ) );
+    options.push( buildKeyText( 'groupByYears' ) );
+    options.push( buildKeyText( 'groupByDayOfWeek' ) );
+    options.push( buildKeyText( 'groupByDateBuckets' ) );
+    options.push( buildKeyText( 'groupByUsers' ) );
+
+    return options;
+
+}
 
 export interface IItemRefiners {
   lev0: any[]; lev1: any[]; lev2: any[];

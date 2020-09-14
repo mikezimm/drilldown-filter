@@ -93,6 +93,8 @@ export interface ITheTime {
   dayMMMDD?: string;
   dayDDDMMMDD?: string;
   dayYYYYMMDD?: string;
+  dayOfWeekDDD?: string;
+  dayOfWeekDxx?: string;
 
   coreTime?: string;
   hoursEarly?: number;
@@ -281,6 +283,7 @@ export function makeTheTimeObject(timeString, coreStart = 8, coreEnd = 18, useHo
     dayMMMDD: monthStr3['en-us'][givenMonth] + '-' + givenDate,
     dayDDDMMMDD: [weekday3['en-us'][givenDay],monthStr3['en-us'][givenMonth],givenDate].join(' '),
     dayYYYYMMDD: [givenYear,("0" + (givenMonth + 1)).slice(-2),givenDate].join('-'),
+    dayOfWeekDDD: weekday3['en-us'][givenDay],
 
     coreTime: coreTime,
     hoursEarly: hoursEarly,
