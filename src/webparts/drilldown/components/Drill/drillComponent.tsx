@@ -831,7 +831,7 @@ public componentDidUpdate(prevProps){
         cmdCats = this.state.cmdCats;
     }
 
-    if ( this.props.updateRefinersOnTextSearch === true ) {
+    if ( searchType === 'text' && this.props.updateRefinersOnTextSearch === true ) {
         refinerObj = buildRefinersObject(newFilteredItems);
         pivotCats = [];
         cmdCats = [];

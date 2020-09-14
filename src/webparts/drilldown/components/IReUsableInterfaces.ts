@@ -25,7 +25,7 @@ export function refinerRuleItems() {
     options.push( buildKeyText( 'groupByMillions' ) );
     options.push( buildKeyText( 'isDate' ) );
     options.push( buildKeyText( 'groupByDays' ) );
-    options.push( buildKeyText( 'groupByDaysDDD' ) );
+    ///options.push( buildKeyText( 'groupByDaysDDD' ) );
     options.push( buildKeyText( 'groupByWeeks' ) );
     options.push( buildKeyText( 'groupByMonthsMMM' ) );
     options.push( buildKeyText( 'groupByMonthsYYMM' ) );

@@ -79,7 +79,7 @@ export class IntroPage {
     let ruleChoices = refinerRuleItems();
     let showDisabled = false;
 
-    if ( webPartProps.rules2.indexOf('groupByDaysDDD') > -1 ||  webPartProps.rules2.indexOf('groupByMonthsMMM') > -1 ) { showDisabled = true;}
+    if ( webPartProps.rules2 && ( webPartProps.rules2.indexOf('groupByDayOfWeek') > -1 ||  webPartProps.rules2.indexOf('groupByMonthsMMM') > -1 ) ) { showDisabled = true;}
 
     return <IPropertyPanePage>
     { // <page1>
