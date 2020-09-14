@@ -52,6 +52,10 @@ export interface IDrilldownWebPartProps {
   refiner1: string;
   refiner2: string;
 
+  rules0def: string;
+  rules1def: string;
+  rules2def: string;
+
   rules0: string[];
   rules1: string[];
   rules2: string[];
@@ -210,6 +214,9 @@ private _filterBy: any;
     let rules2: RefineRuleValues[] = ['parseBySemiColons'];
     let rules3: RefineRuleValues[] = ['groupByMonthsMMM'];
 
+    this.properties.rules0 = [this.properties.rules0def];
+    this.properties.rules1 = [this.properties.rules1def];
+    this.properties.rules2 = [this.properties.rules2def];
 
     let rules = [];
     if ( this.properties.rules0 && this.properties.rules0.length > 0 ) { rules.push ( this.properties.rules0 ) ; } else { rules.push( ['']) ; }

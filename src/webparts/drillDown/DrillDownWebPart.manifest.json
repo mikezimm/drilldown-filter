@@ -25,7 +25,11 @@
       "parentListTitle": "TrackMyTime",
       "refiner0": "Story",
       "refiner1": "Chapter",
-      "refiner2": "Created"
+      "refiner2": "Created",
+      "rules0def": "",
+      "rules1def": "",
+      "rules2def": "groupByMonthsMMM"
+      
     }
   }]
 }
