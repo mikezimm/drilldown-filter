@@ -3,7 +3,7 @@ import {
 } from '@microsoft/sp-webpart-base';
 
 import {
-  introPage,
+  introPage, viewsPage,
 //  webPartSettingsPage,
 
 } from './index';
@@ -19,6 +19,7 @@ export class PropertyPaneBuilder {
     return <IPropertyPaneConfiguration>{
       pages: [
         introPage.getPropertyPanePage(webPartProps,  _onClickUpdateTitles),
+        viewsPage.getPropertyPanePage(webPartProps, ),
 //        webPartSettingsPage.getPropertyPanePage(webPartProps),
 
       ]

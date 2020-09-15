@@ -31,7 +31,7 @@ import { createAdvancedContentChoices } from '../fields/choiceFieldBuilder';
 
 import { IContentsToggles, makeToggles } from '../fields/toggleFieldBuilder';
 
-import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues } from '../IReUsableInterfaces';
+import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef } from '../IReUsableInterfaces';
 
 import { createLink } from '../HelpInfo/AllLinks';
 
@@ -58,6 +58,10 @@ import ResizeGroupOverflowSetExample from './refiners/commandBar';
 import { ICMDItem } from './refiners/commandBar';
 
 import stylesD from './drillComponent.module.scss';
+import {  } from '../../../../services/listServices/viewTypes';
+import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
+import { unstable_renderSubtreeIntoContainer } from 'react-dom';
+
 
 export type IRefinerStyles = 'pivot' | 'commandBar' | 'other';
 
@@ -146,7 +150,7 @@ export interface IDrillDownProps {
     allLoaded: boolean;
 
     viewType?: IViewType;
-
+    viewDefs?: ICustViewDef[];
     parentListFieldTitles: string;
 
     // 1 - Analytics options
@@ -253,6 +257,34 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
  *                                                                                                       
  */
 
+ private getAppropriateViewFields ( viewDefs: ICustViewDef[], currentWidth: number ) {
+    let result : IViewField[] = [];
+
+    let maxViewWidth = 0 ;
+
+    viewDefs.map( vd => {
+        if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
+            result = vd.viewFields;
+            maxViewWidth = vd.minWidth;
+        }
+    });
+
+    let avgWidth = result.length > 0 ? currentWidth/result.length : 100;
+    let completeResult = result.map( f => {
+
+        let thisField = f;
+        let minWidth = thisField.minWidth ? thisField.minWidth : avgWidth;
+        let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;        
+        if ( thisField.minWidth === undefined ) { thisField.minWidth = minWidth; }
+        if ( thisField.maxWidth === undefined ) { thisField.maxWidth = maxWidth; }
+        if ( thisField.isResizable === undefined ) { thisField.isResizable = true; }
+        if ( thisField.sorting === undefined ) { thisField.sorting = true; }
+        return thisField;
+    });
+
+    return completeResult;
+
+ }
     private createEmptyRefinerRules( rules: string ) {
         let emptyRules : any = null;
         try {
@@ -511,8 +543,11 @@ public componentDidUpdate(prevProps){
                     ></MyDrillItems>
                     </div>;
 
+                let currentViewFields: any[] = [];
+                if ( this.props.viewDefs.length > 0 )  { currentViewFields = this.getAppropriateViewFields( this.props.viewDefs, this.state.WebpartWidth ); }
                 let reactListItems = <ReactListItems 
-                    parentListFieldTitles={ this.props.parentListFieldTitles}
+                    parentListFieldTitles={ this.props.viewDefs.length > 0 ? null : this.props.parentListFieldTitles }
+                    viewFields={ currentViewFields }                    
                     items={ this.state.searchedItems}
                 ></ReactListItems>;
 

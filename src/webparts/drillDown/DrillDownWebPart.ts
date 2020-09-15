@@ -22,7 +22,7 @@ import { sp } from '@pnp/sp';
 
 import { propertyPaneBuilder } from '../../services/propPane/PropPaneBuilder';
 
-import { IMyProgress } from './components/IReUsableInterfaces';
+import { IMyProgress, ICustViewDef } from './components/IReUsableInterfaces';
 
 // 2020-09-08:  Add for dynamic data refiners.
 import { IDynamicDataCallables, IDynamicDataPropertyDefinition } from '@microsoft/sp-dynamic-data';
@@ -72,6 +72,14 @@ export interface IDrilldownWebPartProps {
   // 4 - Info Options
 
   // 5 - UI Defaults
+
+  viewWidth1: number;
+  viewWidth2: number;
+  viewWidth3: number;
+
+  viewJSON1: string;
+  viewJSON2: string;
+  viewJSON3: string;
 
   // 6 - User Feedback:
   progress: IMyProgress;
@@ -194,7 +202,19 @@ private _filterBy: any;
     return vars;
   }
 
+  public getViewFieldsObject(message: string, str: string) {
 
+    let result : any = undefined;
+    
+    if ( str === null || str === undefined ) { return result; }
+    try {
+      result = JSON.parse(str);
+    } catch(e) {
+      alert(message + ' is not a valid JSON object.  Please fix it and re-run');
+    }
+    
+    return result;
+  }
 
 
   public render(): void {
@@ -222,6 +242,17 @@ private _filterBy: any;
     if ( this.properties.rules0 && this.properties.rules0.length > 0 ) { rules.push ( this.properties.rules0 ) ; } else { rules.push( ['']) ; }
     if ( this.properties.rules1 && this.properties.rules1.length > 0 ) { rules.push ( this.properties.rules1) ; } else { rules.push( ['']) ; }
     if ( this.properties.rules2 && this.properties.rules2.length > 0 ) { rules.push ( this.properties.rules2) ; } else { rules.push( ['']) ; }
+
+    let viewDefs : ICustViewDef[] = [];
+    let viewFields1 = this.getViewFieldsObject('Full Size view', this.properties.viewJSON1 );
+    let viewFields2 = this.getViewFieldsObject('Med Size view', this.properties.viewJSON2 );
+    let viewFields3 = this.getViewFieldsObject('Small Size view', this.properties.viewJSON3 );
+
+    if (viewFields1 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth1, viewFields: viewFields1 }); }
+    if (viewFields2 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth2, viewFields: viewFields2 }); }
+    if (viewFields3 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth3, viewFields: viewFields3 }); }
+
+    console.log('Here are view Defs:', viewDefs );
 
     let stringRules: string = JSON.stringify( rules );
 
@@ -262,6 +293,7 @@ private _filterBy: any;
         allLoaded: true,
 
         style: 'commandBar',
+        viewDefs: viewDefs,
 
 
         // 3 - General how accurate do you want this to be

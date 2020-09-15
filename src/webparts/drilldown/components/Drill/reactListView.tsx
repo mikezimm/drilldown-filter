@@ -16,6 +16,7 @@ import { Fabric, Stack, IStackTokens, initializeIcons } from 'office-ui-fabric-r
 
 import styles from '../Contents/listView.module.scss';
 import stylesInfo from '../HelpInfo/InfoPane.module.scss';
+import { IView } from '@pnp/sp/views';
 
 export interface IReactListItemsProps {
     title?: string;
@@ -28,7 +29,8 @@ export interface IReactListItemsProps {
     showIDs?: boolean;
     showDesc?: boolean;
 
-    parentListFieldTitles: string;
+    parentListFieldTitles?: string;
+    viewFields?: IViewField[];
 
 }
 
@@ -112,10 +114,18 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
         console.log( 'constructor props: ', this.props, );
         let parentListFieldTitles = this.props.parentListFieldTitles !== undefined && this.props.parentListFieldTitles !== null ? JSON.parse(this.props.parentListFieldTitles) : '';
         console.log( 'parentListFieldTitles', parentListFieldTitles );
+
+        let viewFields : IViewField[] = [];
+        if ( this.props.viewFields.length > 0 ) { 
+            viewFields = this.props.viewFields;
+        } else { 
+            viewFields = this.covertFieldInfoToIViewFields( parentListFieldTitles , [] );
+        }
+
         this.state = {
           maxChars: this.props.maxChars ? this.props.maxChars : 50,
           parentListFieldTitles:parentListFieldTitles,
-          viewFields: this.covertFieldInfoToIViewFields( parentListFieldTitles , [] ),
+          viewFields: viewFields,
           //viewFields: null,
         };
     }
@@ -137,7 +147,11 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
  */
 
     public componentDidUpdate(prevProps: IReactListItemsProps): void {
-    //this._updateWebPart(prevProps);
+        let redraw = false;
+
+        if ( prevProps.viewFields !== this.props.viewFields ) { redraw = true; }
+        if ( prevProps.items.length !== this.props.items.length ) { redraw = true; }
+        this._updateStateOnPropsChange();
     }
 
 /***
@@ -251,4 +265,23 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
 
         } //if ( this.props.items != null && this.props.items.length > 0 ) {    
     } // Render
+
+
+
+    /***
+ *         db    db d8888b. d8888b.  .d8b.  d888888b d88888b      .d8888. d888888b  .d8b.  d888888b d88888b 
+ *         88    88 88  `8D 88  `8D d8' `8b `~~88~~' 88'          88'  YP `~~88~~' d8' `8b `~~88~~' 88'     
+ *         88    88 88oodD' 88   88 88ooo88    88    88ooooo      `8bo.      88    88ooo88    88    88ooooo 
+ *         88    88 88~~~   88   88 88~~~88    88    88~~~~~        `Y8b.    88    88~~~88    88    88~~~~~ 
+ *         88b  d88 88      88  .8D 88   88    88    88.          db   8D    88    88   88    88    88.     
+ *         ~Y8888P' 88      Y8888D' YP   YP    YP    Y88888P      `8888Y'    YP    YP   YP    YP    Y88888P 
+ *                                                                                                          
+ *                                                                                                          
+ */
+
+    private _updateStateOnPropsChange(): void {
+//        this.setState({
+//        });
+    }
+
 }
