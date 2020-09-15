@@ -13,6 +13,8 @@ export type RefineRuleValues =
 export interface ICustViewDef {
   minWidth: number;
   viewFields: IViewField[];
+  groupByFields?: IGrouping[];
+  includeDetails: boolean;
 }
 
 export function buildKeyText( str: RefineRuleValues) {

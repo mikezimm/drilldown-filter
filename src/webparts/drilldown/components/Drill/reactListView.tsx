@@ -2,13 +2,14 @@
 import * as React from 'react';
 import { Icon  } from 'office-ui-fabric-react/lib/Icon';
 
-import { IMyProgress } from '../IReUsableInterfaces';
+import { IMyProgress, } from '../IReUsableInterfaces';
 import { IDrillItemInfo } from './drillComponent';
 
 import { buildPropsHoverCard } from '../../../../services/hoverCardService';
 
 import stylesL from '../ListView/listView.module.scss';
-import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
+import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping, } from "@pnp/spfx-controls-react/lib/ListView";
+import { IGroup } from 'office-ui-fabric-react/lib/components/DetailsList';
 
 import { mergeStyles } from 'office-ui-fabric-react/lib/Styling';
 import { Fabric, Stack, IStackTokens, initializeIcons } from 'office-ui-fabric-react';
@@ -31,6 +32,9 @@ export interface IReactListItemsProps {
 
     parentListFieldTitles?: string;
     viewFields?: IViewField[];
+
+    groupByFields?:  IGrouping[];
+    includeDetails: boolean;
 
 }
 
@@ -226,12 +230,12 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
             items={ this.props.items }
             viewFields={this.state.viewFields}
             compact={true}
-            selectionMode={SelectionMode.none}
+            selectionMode={ this.props.includeDetails ? SelectionMode.single : SelectionMode.none }
             //selection={this._getSelection}
             showFilter={false}
             //defaultFilter="John"
             filterPlaceHolder="Search..."
-            //groupByFields={ } 
+            groupByFields={ this.props.groupByFields } 
         /></div>;
 
         //        let logTable = itemRows === null ? <div>Nothing to show</div> : <table style={{ display: 'block'}} className={stylesInfo.infoTable}>

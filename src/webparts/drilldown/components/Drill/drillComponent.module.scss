@@ -25,10 +25,10 @@
 
       //This is what can actually bound the React List View header      
       [class*="ms-DetailsHeader-cellName"] {
-        font-weight: 700 !important;
+        font-weight: 600 !important;
         font-size: larger;
       }
-      
+
 /*
       [data-automationid="DetailsRowCell"] {
         //This will let you change cell text color

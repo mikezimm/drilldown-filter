@@ -29,6 +29,8 @@ import { IDynamicDataCallables, IDynamicDataPropertyDefinition } from '@microsof
 
 import { RefineRuleValues } from './components/IReUsableInterfaces';
 
+import { IGrouping, IViewField } from "@pnp/spfx-controls-react/lib/ListView";
+
 
 export interface IDrilldownWebPartProps {
 
@@ -80,6 +82,10 @@ export interface IDrilldownWebPartProps {
   viewJSON1: string;
   viewJSON2: string;
   viewJSON3: string;
+
+  includeDetails: boolean;
+
+  groupByFields: string;
 
   // 6 - User Feedback:
   progress: IMyProgress;
@@ -202,13 +208,20 @@ private _filterBy: any;
     return vars;
   }
 
-  public getViewFieldsObject(message: string, str: string) {
+  /**
+   * This will just add the same Group By fields to all the views.
+   * @param message 
+   * @param str 
+   * @param grp 
+   */
+  public getViewFieldsObject(message: string, str: string, grp: string ) {
 
-    let result : any = undefined;
+    let result : IViewField[] = undefined;
     
     if ( str === null || str === undefined ) { return result; }
     try {
       result = JSON.parse(str);
+
     } catch(e) {
       alert(message + ' is not a valid JSON object.  Please fix it and re-run');
     }
@@ -216,6 +229,20 @@ private _filterBy: any;
     return result;
   }
 
+  public getViewGroupFields( grp: string ){
+      let result: IGrouping[] = [];
+      let propsGroups: string[];
+
+      if ( grp ) {
+        propsGroups = grp.indexOf(';') > -1 ? grp.split(';') : [grp];
+        result = propsGroups.map ( g => {
+          return { name: g, order: 1, };
+        });
+        
+      }
+      
+      return result;
+  }
 
   public render(): void {
 
@@ -229,7 +256,6 @@ private _filterBy: any;
     if ( this.properties.refiner1 && this.properties.refiner1.length > 0 ) { refiners.push( this.properties.refiner1 ) ;}
     if ( this.properties.refiner2 && this.properties.refiner2.length > 0 ) { refiners.push( this.properties.refiner2 ) ;}
 
-    //Sample rules
     let rules1: RefineRuleValues[] = ['parseBySemiColons'];
     let rules2: RefineRuleValues[] = ['parseBySemiColons'];
     let rules3: RefineRuleValues[] = ['groupByMonthsMMM'];
@@ -244,13 +270,14 @@ private _filterBy: any;
     if ( this.properties.rules2 && this.properties.rules2.length > 0 ) { rules.push ( this.properties.rules2) ; } else { rules.push( ['']) ; }
 
     let viewDefs : ICustViewDef[] = [];
-    let viewFields1 = this.getViewFieldsObject('Full Size view', this.properties.viewJSON1 );
-    let viewFields2 = this.getViewFieldsObject('Med Size view', this.properties.viewJSON2 );
-    let viewFields3 = this.getViewFieldsObject('Small Size view', this.properties.viewJSON3 );
+    let viewFields1 : IViewField[] = this.getViewFieldsObject('Full Size view', this.properties.viewJSON1, this.properties.groupByFields );
+    let viewFields2 : IViewField[] = this.getViewFieldsObject('Med Size view', this.properties.viewJSON2, this.properties.groupByFields );
+    let viewFields3 : IViewField[] = this.getViewFieldsObject('Small Size view', this.properties.viewJSON3, this.properties.groupByFields );
 
-    if (viewFields1 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth1, viewFields: viewFields1 }); }
-    if (viewFields2 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth2, viewFields: viewFields2 }); }
-    if (viewFields3 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth3, viewFields: viewFields3 }); }
+    let groupByFields: IGrouping[] = this.getViewGroupFields( this.properties.groupByFields);
+    if (viewFields1 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth1, viewFields: viewFields1, groupByFields: groupByFields, includeDetails: this.properties.includeDetails }); }
+    if (viewFields2 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth2, viewFields: viewFields2, groupByFields: groupByFields, includeDetails: this.properties.includeDetails }); }
+    if (viewFields3 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth3, viewFields: viewFields3, groupByFields: groupByFields, includeDetails: this.properties.includeDetails }); }
 
     console.log('Here are view Defs:', viewDefs );
 
@@ -294,7 +321,6 @@ private _filterBy: any;
 
         style: 'commandBar',
         viewDefs: viewDefs,
-
 
         // 3 - General how accurate do you want this to be
 

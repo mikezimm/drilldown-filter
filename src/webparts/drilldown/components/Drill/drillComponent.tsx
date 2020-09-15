@@ -35,7 +35,7 @@ import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProg
 
 import { createLink } from '../HelpInfo/AllLinks';
 
-import { IRefiners, IRefinerLayer, IItemRefiners } from '../IReUsableInterfaces';
+import { IRefiners, IRefinerLayer, IItemRefiners, } from '../IReUsableInterfaces';
 
 import { PageContext } from '@microsoft/sp-page-context';
 
@@ -60,6 +60,7 @@ import { ICMDItem } from './refiners/commandBar';
 import stylesD from './drillComponent.module.scss';
 import {  } from '../../../../services/listServices/viewTypes';
 import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
+
 import { unstable_renderSubtreeIntoContainer } from 'react-dom';
 
 
@@ -241,6 +242,8 @@ export interface IDrillDownState {
 
     style: IRefinerStyles; //RefinerStyle
 
+    groupByFields: IGrouping[];
+
     
 }
 
@@ -257,34 +260,69 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
  *                                                                                                       
  */
 
- private getAppropriateViewFields ( viewDefs: ICustViewDef[], currentWidth: number ) {
-    let result : IViewField[] = [];
+    private getAppropriateViewFields ( viewDefs: ICustViewDef[], currentWidth: number ) {
+        let result : IViewField[] = [];
 
-    let maxViewWidth = 0 ;
+        let maxViewWidth = 0 ;
 
-    viewDefs.map( vd => {
-        if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
-            result = vd.viewFields;
-            maxViewWidth = vd.minWidth;
-        }
-    });
+        viewDefs.map( vd => {
+            if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
+                result = vd.viewFields;
+                maxViewWidth = vd.minWidth;
+            }
+        });
 
-    let avgWidth = result.length > 0 ? currentWidth/result.length : 100;
-    let completeResult = result.map( f => {
+        console.log('getAppropriateViewFields BEST Width:', maxViewWidth );
 
-        let thisField = f;
-        let minWidth = thisField.minWidth ? thisField.minWidth : avgWidth;
-        let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;        
-        if ( thisField.minWidth === undefined ) { thisField.minWidth = minWidth; }
-        if ( thisField.maxWidth === undefined ) { thisField.maxWidth = maxWidth; }
-        if ( thisField.isResizable === undefined ) { thisField.isResizable = true; }
-        if ( thisField.sorting === undefined ) { thisField.sorting = true; }
-        return thisField;
-    });
+        let avgWidth = result.length > 0 ? currentWidth/result.length : 100;
+        let completeResult = result.map( f => {
 
-    return completeResult;
+            let thisField = f;
+            let minWidth = thisField.minWidth ? thisField.minWidth : avgWidth;
+            let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;        
+            if ( thisField.minWidth === undefined ) { thisField.minWidth = minWidth; }
+            if ( thisField.maxWidth === undefined ) { thisField.maxWidth = maxWidth; }
+            if ( thisField.isResizable === undefined ) { thisField.isResizable = true; }
+            if ( thisField.sorting === undefined ) { thisField.sorting = true; }
+            return thisField;
+        });
 
- }
+        console.log('getAppropriateViewFields:', completeResult);
+        return completeResult;
+
+    }
+
+    private getAppropriateViewGroups ( viewDefs: ICustViewDef[], currentWidth: number ) {
+        let result : IGrouping[] = [];
+
+        let maxViewWidth = 0 ;
+
+        viewDefs.map( vd => {
+            if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
+                result = vd.groupByFields;
+                maxViewWidth = vd.minWidth;
+            }
+        });
+        console.log('getAppropriateViewFields: ', result);
+        return result;
+
+    }
+
+    private getAppropriateDetailMode ( viewDefs: ICustViewDef[], currentWidth: number ) {
+        let result : boolean = false;
+
+        let maxViewWidth = 0 ;
+        viewDefs.map( vd => {
+            if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
+                result = vd.includeDetails;
+                maxViewWidth = vd.minWidth;
+            }
+        });
+        console.log('includeDetails: ', result);
+        return result;
+
+    }
+
     private createEmptyRefinerRules( rules: string ) {
         let emptyRules : any = null;
         try {
@@ -357,6 +395,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             pivotCats: [],
             cmdCats: [],
+
+            groupByFields : [],
 
             style: this.props.style ? this.props.style : 'commandBar',
 
@@ -543,12 +583,18 @@ public componentDidUpdate(prevProps){
                     ></MyDrillItems>
                     </div>;
 
+                let viewDefMode = this.getAppropriateDetailMode( this.props.viewDefs, this.state.WebpartWidth );
                 let currentViewFields: any[] = [];
                 if ( this.props.viewDefs.length > 0 )  { currentViewFields = this.getAppropriateViewFields( this.props.viewDefs, this.state.WebpartWidth ); }
-                let reactListItems = <ReactListItems 
+
+                let currentViewGroups : IGrouping[] =  this.getAppropriateViewGroups( this.props.viewDefs , this.state.WebpartWidth );
+
+                let reactListItems  = this.state.searchedItems.length === 0 ? <div>NO ITEMS FOUND</div> : <ReactListItems 
                     parentListFieldTitles={ this.props.viewDefs.length > 0 ? null : this.props.parentListFieldTitles }
-                    viewFields={ currentViewFields }                    
+                    viewFields={ currentViewFields }
+                    groupByFields={ currentViewGroups }
                     items={ this.state.searchedItems}
+                    includeDetails= { viewDefMode }
                 ></ReactListItems>;
 
                 thisPage = <div className={styles.contents}>

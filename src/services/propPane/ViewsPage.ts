@@ -75,6 +75,18 @@ import {
             ]
           },
          
+//groupByFields
+          // 2 - Source and destination list information
+          {  groupName: 'List Grouping',
+              isCollapsed: true ,
+              groupFields: [
+                PropertyPaneTextField('groupByFields', {
+                    label: 'Group by Fields',
+                    description: 'Semi-colon separated Static Column names',
+                    }),
+  
+            ]}, // this group
+
           // 2 - Source and destination list information
           {  groupName: 'Full Size list',
               isCollapsed: true ,
@@ -156,6 +168,21 @@ import {
                     }),
   
             ]}, // this group
+
+          // 2 - Source and destination list information
+          {  groupName: 'Details button',
+              isCollapsed: true ,
+              groupFields: [
+                PropertyPaneToggle('includeDetails', {
+                    label: 'Include details panel',
+                    offText: 'No',
+                    onText: 'Yes',
+                  }),
+  
+            ]}, // this group
+
+
+
 
           ]}; // Groups
     } // getPropertyPanePage()
