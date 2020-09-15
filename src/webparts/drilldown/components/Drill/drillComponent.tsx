@@ -551,8 +551,8 @@ public componentDidUpdate(prevProps){
                     items={ this.state.searchedItems}
                 ></ReactListItems>;
 
-                thisPage = <div className={[styles.contents, stylesD.drillDown].join(' ')}>
-                    <div>
+                thisPage = <div className={styles.contents}>
+                    <div className={stylesD.drillDown}>
                         <div className={styles.floatRight}>{ toggleTipsButton }</div>
                         <div className={ this.state.errMessage === '' ? styles.hideMe : styles.showErrorMessage  }>{ this.state.errMessage } </div>
                             {  /* <p><mark>Check why picking Assists does not show Help as a chapter even though it's the only chapter...</mark></p> */ }

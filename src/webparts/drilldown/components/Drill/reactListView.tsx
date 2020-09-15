@@ -221,7 +221,7 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
             </tr>;
         });
 
-        let listView = <div className={ stylesL.timeListView } >
+        let listView = <div>
         <ListView
             items={ this.props.items }
             viewFields={this.state.viewFields}
@@ -243,9 +243,10 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
         if ( barText != null ) {
             webTitle =<div className={ stylesInfo.infoHeading }><span style={{ paddingLeft: 20, whiteSpace: 'nowrap' }}>( { this.props.items.length }  ) Items in: { barText }</span></div>;
 
-
+        
+        /*stylesL.reactListView*/
         return (
-            <div className={ styles.logListView }>
+            <div className={ '' } >
                 <div style={{ paddingTop: 10}} className={ stylesInfo.infoPaneTight }>
                 { webTitle }
                 { listView }
