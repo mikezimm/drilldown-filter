@@ -76,9 +76,21 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
         let viewFields : IViewField[] = [];
         
         if ( fieldsToShow.length === 0 ) { //Do all in order of fieldInfo
-
+            if ( parentListFieldTitles.length > 0 ) { //Do all in order of fieldInfo
+                parentListFieldTitles.map( f => {
+                    viewFields.push({
+                        name: f[0],
+                        displayName: f[1],
+                        isResizable: true,
+                        sorting: true,
+                        minWidth: 50,
+                        maxWidth: 100
+                    });
+                });
+            }
         }
 
+        console.log('covertFieldInfoToIViewFields - viewFields', viewFields);
         return viewFields;
 
     }
@@ -97,12 +109,14 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
 
     constructor(props: IReactListItemsProps) {
         super(props);
-        let parentListFieldTitles = JSON.parse(this.props.parentListFieldTitles);
+        console.log( 'constructor props: ', this.props, );
+        let parentListFieldTitles = this.props.parentListFieldTitles !== undefined && this.props.parentListFieldTitles !== null ? JSON.parse(this.props.parentListFieldTitles) : '';
         console.log( 'parentListFieldTitles', parentListFieldTitles );
         this.state = {
           maxChars: this.props.maxChars ? this.props.maxChars : 50,
           parentListFieldTitles:parentListFieldTitles,
           viewFields: this.covertFieldInfoToIViewFields( parentListFieldTitles , [] ),
+          //viewFields: null,
         };
     }
         
@@ -193,6 +207,19 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
             </tr>;
         });
 
+        let listView = <div className={ stylesL.timeListView } >
+        <ListView
+            items={ this.props.items }
+            viewFields={this.state.viewFields}
+            compact={true}
+            selectionMode={SelectionMode.none}
+            //selection={this._getSelection}
+            showFilter={false}
+            //defaultFilter="John"
+            filterPlaceHolder="Search..."
+            //groupByFields={ } 
+        /></div>;
+
         //        let logTable = itemRows === null ? <div>Nothing to show</div> : <table style={{ display: 'block'}} className={stylesInfo.infoTable}>
 
         let barText = this.props.blueBar && this.props.blueBar != null ? this.props.blueBar : <span>Items</span>;
@@ -207,7 +234,7 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
             <div className={ styles.logListView }>
                 <div style={{ paddingTop: 10}} className={ stylesInfo.infoPaneTight }>
                 { webTitle }
-                {  }
+                { listView }
             </div>
             </div>
             );

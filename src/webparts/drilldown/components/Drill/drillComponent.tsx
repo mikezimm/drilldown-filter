@@ -120,6 +120,7 @@ export interface IDrillItemInfo extends Partial<any>{
 
 }
 
+export type IViewType = 'React' | 'MZ' | 'Other' ;
 
 export interface IDrillDownProps {
     // 0 - Context
@@ -143,6 +144,8 @@ export interface IDrillDownProps {
     listName : string;
     
     allLoaded: boolean;
+
+    viewType?: IViewType;
 
     parentListFieldTitles: string;
 
@@ -214,6 +217,8 @@ export interface IDrillDownState {
     progress: IMyProgress;
 
     allItems: IDrillItemInfo[];
+
+    viewType?: IViewType;
 
     meta: string[];
 
@@ -292,6 +297,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             drillList: drillList,
 
             showTips: false,
+
+            viewType: this.props.viewType === undefined || this.props.viewType === null ? 'React' : this.props.viewType,
 
             allowOtherSites: this.props.allowOtherSites === true ? true : false,
             currentPage: 'Click Button to start',
@@ -530,7 +537,8 @@ public componentDidUpdate(prevProps){
                                 <div className={ this.state.searchCount !== 0 ? styles.hideMe : styles.showErrorMessage  }>{ noInfo } </div>
 
                                 <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
-                                    { drillItems  }
+                                    { this.state.viewType === 'React' ? reactListItems : drillItems }
+                                    {   }
                                 </Stack>
                             </div> { /* Close tag from above noInfo */}
                         </div>
@@ -1099,14 +1107,14 @@ public componentDidUpdate(prevProps){
 
     private getPageToggles() {
 
-        let togDesc = {
+        let togView = {
             //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
-            label: <span>Description</span>,
-            key: 'togggleDescription',
-            _onChange: this.updateTogggleDesc.bind(this),
-            checked: false,
-            onText: '-',
-            offText: '-',
+            label: <span>View</span>,
+            key: 'togggleView',
+            _onChange: this.updateTogggleView.bind(this),
+            checked: this.state.viewType === 'React' ? true : false,
+            onText: 'React',
+            offText: 'MZ',
             className: '',
             styles: '',
         };
@@ -1123,7 +1131,7 @@ public componentDidUpdate(prevProps){
             styles: '',
         };
 
-        let theseToggles = [togDesc , togRefinerStyle];
+        let theseToggles = [togView , togRefinerStyle];
 
         let pageToggles : IContentsToggles = {
             toggles: theseToggles,
@@ -1138,9 +1146,12 @@ public componentDidUpdate(prevProps){
 
     }
 
-    private updateTogggleDesc() {
+    private updateTogggleView() {
+
+        let viewType : IViewType = 'MZ';
+        if (this.state.viewType === 'MZ') { viewType = 'React'; }
         this.setState({
-            
+            viewType : viewType,
         });
     }
 
