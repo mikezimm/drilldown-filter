@@ -5,7 +5,10 @@ import { Icon  } from 'office-ui-fabric-react/lib/Icon';
 import { IMyProgress, } from '../IReUsableInterfaces';
 import { IDrillItemInfo } from './drillComponent';
 
-import { buildPropsHoverCard } from '../../../../services/hoverCardService';
+import { buildPropsHoverCard, autoDetailsList } from '../../../../services/hoverCardService';
+
+import { doesObjectExistInArray,  } from '../../../../services/arrayServices';
+
 
 import stylesL from '../ListView/listView.module.scss';
 import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping, } from "@pnp/spfx-controls-react/lib/ListView";
@@ -13,6 +16,8 @@ import { IGroup } from 'office-ui-fabric-react/lib/components/DetailsList';
 
 import { mergeStyles } from 'office-ui-fabric-react/lib/Styling';
 import { Fabric, Stack, IStackTokens, initializeIcons } from 'office-ui-fabric-react';
+import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
+import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
 
 
 import styles from '../Contents/listView.module.scss';
@@ -42,6 +47,9 @@ export interface IReactListItemsState {
   maxChars?: number;
   parentListFieldTitles: any;
   viewFields: IViewField[];
+  showPanel: boolean;
+  panelId: number;
+  panelItem: IDrillItemInfo;
 }
 
 const stackFormRowTokens: IStackTokens = { childrenGap: 10 };
@@ -130,6 +138,9 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
           maxChars: this.props.maxChars ? this.props.maxChars : 50,
           parentListFieldTitles:parentListFieldTitles,
           viewFields: viewFields,
+          showPanel: false,
+          panelId: null,
+          panelItem: null,
           //viewFields: null,
         };
     }
@@ -225,13 +236,25 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
             </tr>;
         });
 
+        let panel = !this.state.showPanel || this.state.panelId === null || this.state.panelId === undefined || this.state.panelItem === null ? null : 
+            <Panel
+                isOpen={this.state.showPanel}
+                type={ PanelType.medium }
+                onDismiss={this._onClosePanel}
+                headerText={ this.state.panelId.toString() }
+                closeButtonAriaLabel="Close"
+                onRenderFooterContent={this._onRenderFooterContent}
+            >
+                { autoDetailsList(this.state.panelItem, ["Title","refiners"],["search","meta","searchString"],true) }
+            </Panel>;
+
         let listView = <div>
         <ListView
             items={ this.props.items }
             viewFields={this.state.viewFields}
             compact={true}
             selectionMode={ this.props.includeDetails ? SelectionMode.single : SelectionMode.none }
-            //selection={this._getSelection}
+            selection={this._onShowPanel.bind(this)}
             showFilter={false}
             //defaultFilter="John"
             filterPlaceHolder="Search..."
@@ -253,6 +276,7 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
             <div className={ '' } >
                 <div style={{ paddingTop: 10}} className={ stylesInfo.infoPaneTight }>
                 { webTitle }
+                { panel }
                 { listView }
             </div>
             </div>
@@ -287,6 +311,61 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
     private _updateStateOnPropsChange(): void {
 //        this.setState({
 //        });
+    }
+
+    //private _sampleOnClick = (item): void => {
+    private _onShowPanel = (item): void => {
+  
+        //This sends back the correct pivot category which matches the category on the tile.
+        let e: any = event;
+        console.log('_onShowPanel: e',e);
+        console.log('_onShowPanel item clicked:',item);
+
+//        let panelItem : IDrillItemInfo = null;
+
+
+        //Also need to udpate content
+        if (item.length > 0 ) {
+            let panelItem  : IDrillItemInfo = this._getItemFromId(this.props.items, 'Id', item[0].Id);
+            this.setState({ 
+                showPanel: true, 
+                panelId: item[0].Id,
+                panelItem: panelItem,
+            });
+        }
+
+
+    }
+
+    private _getItemFromId( items: IDrillItemInfo[], key: string, val: any ) {
+        let panelItem : IDrillItemInfo =  null;
+        let showIndex = doesObjectExistInArray(this.props.items, key, val);
+        if (showIndex !== false ) {
+            panelItem = this.props.items[showIndex];
+            console.log('showPanelPropsItem', panelItem );
+        }
+        return panelItem;
+
+    }
+
+    private _onClosePanel = (): void => {
+        this.setState({ showPanel: false });
+      }
+
+      /**
+       * This was copied from codepen example code to render a footer with buttons:
+       * https://fabricweb.z5.web.core.windows.net/oufr/6.50.2/#/examples/panel
+       * 
+       */
+    private _onRenderFooterContent = (): JSX.Element => {
+        return (
+        <div>
+            <PrimaryButton onClick={this._onClosePanel} style={{ marginRight: '8px' }}>
+            Save
+            </PrimaryButton>
+            <DefaultButton onClick={this._onClosePanel}>Cancel</DefaultButton>
+        </div>
+        );
     }
 
 }
