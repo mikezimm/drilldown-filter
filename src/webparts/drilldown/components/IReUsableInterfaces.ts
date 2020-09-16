@@ -1,4 +1,4 @@
-
+import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
   
 export interface IRefinerRules {
   rules: RefineRuleValues[];
@@ -9,6 +9,13 @@ export type RefineRuleValues =
   'isDate' | 'groupByDays' | 'groupByDaysDDD' | 'groupByWeeks' |  'groupByMonthsMMM' |    'groupByMonthsYYMM' |'groupByYears' | 'groupByDayOfWeek' |  'groupByDateBuckets' |
   'groupByUsers' | 'invalidRules' | ''
 ;
+
+export interface ICustViewDef {
+  minWidth: number;
+  viewFields: IViewField[];
+  groupByFields?: IGrouping[];
+  includeDetails: boolean;
+}
 
 export function buildKeyText( str: RefineRuleValues) {
   return { key: str, text: str };

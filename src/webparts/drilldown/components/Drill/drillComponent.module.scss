@@ -8,6 +8,34 @@
 
 .drillDown {
 
+      //https://www.w3.org/TR/CSS21/selector.html%23id-selectors#type-selectors
+
+      //#eaeaea is the default color for selected list items
+      .timeListView *[data-automationid="DetailsRowFields"] {
+        background-color:  #FFFAB0 ;
+        transition: all 0.3s ease;
+      }
+
+      .timeListView *[data-automationid="DetailsRowFields"] :hover  {
+        background-color:  #c2c2c2 ;
+        color: #212121;
+        transition: all 0.3s ease;
+      }
+
+
+      //This is what can actually bound the React List View header      
+      [class*="ms-DetailsHeader-cellName"] {
+        font-weight: 600 !important;
+        font-size: larger;
+      }
+
+/*
+      [data-automationid="DetailsRowCell"] {
+        //This will let you change cell text color
+        color: black;
+      }
+*/
+
       //  This affects all the commandButtons
       .refiners *[type="button"]  {
         //width: 200px;
@@ -72,11 +100,6 @@
         //width: 0;
         display: none;
       }
-
-
-
-
-
       
       .refiners [class*="is-checked"]  {
           //Do this for making button colored if checked... not needed if we do the underline below

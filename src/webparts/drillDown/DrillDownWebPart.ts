@@ -22,12 +22,14 @@ import { sp } from '@pnp/sp';
 
 import { propertyPaneBuilder } from '../../services/propPane/PropPaneBuilder';
 
-import { IMyProgress } from './components/IReUsableInterfaces';
+import { IMyProgress, ICustViewDef } from './components/IReUsableInterfaces';
 
 // 2020-09-08:  Add for dynamic data refiners.
 import { IDynamicDataCallables, IDynamicDataPropertyDefinition } from '@microsoft/sp-dynamic-data';
 
 import { RefineRuleValues } from './components/IReUsableInterfaces';
+
+import { IGrouping, IViewField } from "@pnp/spfx-controls-react/lib/ListView";
 
 
 export interface IDrilldownWebPartProps {
@@ -72,6 +74,18 @@ export interface IDrilldownWebPartProps {
   // 4 - Info Options
 
   // 5 - UI Defaults
+
+  viewWidth1: number;
+  viewWidth2: number;
+  viewWidth3: number;
+
+  viewJSON1: string;
+  viewJSON2: string;
+  viewJSON3: string;
+
+  includeDetails: boolean;
+
+  groupByFields: string;
 
   // 6 - User Feedback:
   progress: IMyProgress;
@@ -194,8 +208,41 @@ private _filterBy: any;
     return vars;
   }
 
+  /**
+   * This will just add the same Group By fields to all the views.
+   * @param message 
+   * @param str 
+   * @param grp 
+   */
+  public getViewFieldsObject(message: string, str: string, grp: string ) {
 
+    let result : IViewField[] = undefined;
+    
+    if ( str === null || str === undefined ) { return result; }
+    try {
+      result = JSON.parse(str);
 
+    } catch(e) {
+      alert(message + ' is not a valid JSON object.  Please fix it and re-run');
+    }
+    
+    return result;
+  }
+
+  public getViewGroupFields( grp: string ){
+      let result: IGrouping[] = [];
+      let propsGroups: string[];
+
+      if ( grp ) {
+        propsGroups = grp.indexOf(';') > -1 ? grp.split(';') : [grp];
+        result = propsGroups.map ( g => {
+          return { name: g, order: 1, };
+        });
+        
+      }
+      
+      return result;
+  }
 
   public render(): void {
 
@@ -209,7 +256,6 @@ private _filterBy: any;
     if ( this.properties.refiner1 && this.properties.refiner1.length > 0 ) { refiners.push( this.properties.refiner1 ) ;}
     if ( this.properties.refiner2 && this.properties.refiner2.length > 0 ) { refiners.push( this.properties.refiner2 ) ;}
 
-    //Sample rules
     let rules1: RefineRuleValues[] = ['parseBySemiColons'];
     let rules2: RefineRuleValues[] = ['parseBySemiColons'];
     let rules3: RefineRuleValues[] = ['groupByMonthsMMM'];
@@ -222,6 +268,18 @@ private _filterBy: any;
     if ( this.properties.rules0 && this.properties.rules0.length > 0 ) { rules.push ( this.properties.rules0 ) ; } else { rules.push( ['']) ; }
     if ( this.properties.rules1 && this.properties.rules1.length > 0 ) { rules.push ( this.properties.rules1) ; } else { rules.push( ['']) ; }
     if ( this.properties.rules2 && this.properties.rules2.length > 0 ) { rules.push ( this.properties.rules2) ; } else { rules.push( ['']) ; }
+
+    let viewDefs : ICustViewDef[] = [];
+    let viewFields1 : IViewField[] = this.getViewFieldsObject('Full Size view', this.properties.viewJSON1, this.properties.groupByFields );
+    let viewFields2 : IViewField[] = this.getViewFieldsObject('Med Size view', this.properties.viewJSON2, this.properties.groupByFields );
+    let viewFields3 : IViewField[] = this.getViewFieldsObject('Small Size view', this.properties.viewJSON3, this.properties.groupByFields );
+
+    let groupByFields: IGrouping[] = this.getViewGroupFields( this.properties.groupByFields);
+    if (viewFields1 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth1, viewFields: viewFields1, groupByFields: groupByFields, includeDetails: this.properties.includeDetails }); }
+    if (viewFields2 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth2, viewFields: viewFields2, groupByFields: groupByFields, includeDetails: this.properties.includeDetails }); }
+    if (viewFields3 !== undefined ) { viewDefs.push( { minWidth: this.properties.viewWidth3, viewFields: viewFields3, groupByFields: groupByFields, includeDetails: this.properties.includeDetails }); }
+
+    console.log('Here are view Defs:', viewDefs );
 
     let stringRules: string = JSON.stringify( rules );
 
@@ -262,7 +320,7 @@ private _filterBy: any;
         allLoaded: true,
 
         style: 'commandBar',
-
+        viewDefs: viewDefs,
 
         // 3 - General how accurate do you want this to be
 
@@ -336,7 +394,11 @@ private _filterBy: any;
 
     //2020-05-13:  Remove Active since it's replaced with StatusTMT which is not applicable here
     let defFields = ["Title","Author","Editor","Created","Modified"];
-    let filterFields=["SSChoice1","SSChoiceA","MSChoice2","MSChoiceB"];
+    let filterFields=[]; //["SSChoice1","SSChoiceA","MSChoice2","MSChoiceB"];
+    if ( this.properties.refiner0 != '' ) { filterFields.push( this.properties.refiner0 ); }
+    if ( this.properties.refiner1 != '' ) { filterFields.push( this.properties.refiner1 ); }
+    if ( this.properties.refiner2 != '' ) { filterFields.push( this.properties.refiner2 ); }
+
     let allFields = defFields.concat(filterFields);
 
     let fieldTitles = r.filter(f => f.Hidden !== true && allFields.indexOf(f.StaticName) > -1).map( 

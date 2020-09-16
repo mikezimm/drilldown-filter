@@ -31,11 +31,11 @@ import { createAdvancedContentChoices } from '../fields/choiceFieldBuilder';
 
 import { IContentsToggles, makeToggles } from '../fields/toggleFieldBuilder';
 
-import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues } from '../IReUsableInterfaces';
+import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef } from '../IReUsableInterfaces';
 
 import { createLink } from '../HelpInfo/AllLinks';
 
-import { IRefiners, IRefinerLayer, IItemRefiners } from '../IReUsableInterfaces';
+import { IRefiners, IRefinerLayer, IItemRefiners, } from '../IReUsableInterfaces';
 
 import { PageContext } from '@microsoft/sp-page-context';
 
@@ -47,6 +47,10 @@ import { getHelpfullError, } from '../../../../services/ErrorHandler';
 
 import MyDrillItems from './drillListView';
 
+import ReactListItems from './reactListView';
+
+//parentListFieldTitles
+
 import { getAllItems, buildRefinersObject } from './drillFunctions';
 
 import ResizeGroupOverflowSetExample from './refiners/commandBar';
@@ -54,6 +58,11 @@ import ResizeGroupOverflowSetExample from './refiners/commandBar';
 import { ICMDItem } from './refiners/commandBar';
 
 import stylesD from './drillComponent.module.scss';
+import {  } from '../../../../services/listServices/viewTypes';
+import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
+
+import { unstable_renderSubtreeIntoContainer } from 'react-dom';
+
 
 export type IRefinerStyles = 'pivot' | 'commandBar' | 'other';
 
@@ -116,6 +125,7 @@ export interface IDrillItemInfo extends Partial<any>{
 
 }
 
+export type IViewType = 'React' | 'MZ' | 'Other' ;
 
 export interface IDrillDownProps {
     // 0 - Context
@@ -140,6 +150,8 @@ export interface IDrillDownProps {
     
     allLoaded: boolean;
 
+    viewType?: IViewType;
+    viewDefs?: ICustViewDef[];
     parentListFieldTitles: string;
 
     // 1 - Analytics options
@@ -211,6 +223,8 @@ export interface IDrillDownState {
 
     allItems: IDrillItemInfo[];
 
+    viewType?: IViewType;
+
     meta: string[];
 
     errMessage: string | JSX.Element;
@@ -228,6 +242,8 @@ export interface IDrillDownState {
 
     style: IRefinerStyles; //RefinerStyle
 
+    groupByFields: IGrouping[];
+
     
 }
 
@@ -243,6 +259,69 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
  *                                                                                                       
  *                                                                                                       
  */
+
+    private getAppropriateViewFields ( viewDefs: ICustViewDef[], currentWidth: number ) {
+        let result : IViewField[] = [];
+
+        let maxViewWidth = 0 ;
+
+        viewDefs.map( vd => {
+            if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
+                result = vd.viewFields;
+                maxViewWidth = vd.minWidth;
+            }
+        });
+
+        console.log('getAppropriateViewFields BEST Width:', maxViewWidth );
+
+        let avgWidth = result.length > 0 ? currentWidth/result.length : 100;
+        let completeResult = result.map( f => {
+
+            let thisField = f;
+            let minWidth = thisField.minWidth ? thisField.minWidth : avgWidth;
+            let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;        
+            if ( thisField.minWidth === undefined ) { thisField.minWidth = minWidth; }
+            if ( thisField.maxWidth === undefined ) { thisField.maxWidth = maxWidth; }
+            if ( thisField.isResizable === undefined ) { thisField.isResizable = true; }
+            if ( thisField.sorting === undefined ) { thisField.sorting = true; }
+            return thisField;
+        });
+
+        console.log('getAppropriateViewFields:', completeResult);
+        return completeResult;
+
+    }
+
+    private getAppropriateViewGroups ( viewDefs: ICustViewDef[], currentWidth: number ) {
+        let result : IGrouping[] = [];
+
+        let maxViewWidth = 0 ;
+
+        viewDefs.map( vd => {
+            if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
+                result = vd.groupByFields;
+                maxViewWidth = vd.minWidth;
+            }
+        });
+        console.log('getAppropriateViewFields: ', result);
+        return result;
+
+    }
+
+    private getAppropriateDetailMode ( viewDefs: ICustViewDef[], currentWidth: number ) {
+        let result : boolean = false;
+
+        let maxViewWidth = 0 ;
+        viewDefs.map( vd => {
+            if ( currentWidth >= vd.minWidth && vd.minWidth >= maxViewWidth ) {
+                result = vd.includeDetails;
+                maxViewWidth = vd.minWidth;
+            }
+        });
+        console.log('includeDetails: ', result);
+        return result;
+
+    }
 
     private createEmptyRefinerRules( rules: string ) {
         let emptyRules : any = null;
@@ -289,6 +368,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             showTips: false,
 
+            viewType: this.props.viewType === undefined || this.props.viewType === null ? 'React' : this.props.viewType,
+
             allowOtherSites: this.props.allowOtherSites === true ? true : false,
             currentPage: 'Click Button to start',
             allLoaded: false,
@@ -314,6 +395,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             pivotCats: [],
             cmdCats: [],
+
+            groupByFields : [],
 
             style: this.props.style ? this.props.style : 'commandBar',
 
@@ -500,8 +583,22 @@ public componentDidUpdate(prevProps){
                     ></MyDrillItems>
                     </div>;
 
-                thisPage = <div className={[styles.contents, stylesD.drillDown].join(' ')}>
-                    <div>
+                let viewDefMode = this.getAppropriateDetailMode( this.props.viewDefs, this.state.WebpartWidth );
+                let currentViewFields: any[] = [];
+                if ( this.props.viewDefs.length > 0 )  { currentViewFields = this.getAppropriateViewFields( this.props.viewDefs, this.state.WebpartWidth ); }
+
+                let currentViewGroups : IGrouping[] =  this.getAppropriateViewGroups( this.props.viewDefs , this.state.WebpartWidth );
+
+                let reactListItems  = this.state.searchedItems.length === 0 ? <div>NO ITEMS FOUND</div> : <ReactListItems 
+                    parentListFieldTitles={ this.props.viewDefs.length > 0 ? null : this.props.parentListFieldTitles }
+                    viewFields={ currentViewFields }
+                    groupByFields={ currentViewGroups }
+                    items={ this.state.searchedItems}
+                    includeDetails= { viewDefMode }
+                ></ReactListItems>;
+
+                thisPage = <div className={styles.contents}>
+                    <div className={stylesD.drillDown}>
                         <div className={styles.floatRight}>{ toggleTipsButton }</div>
                         <div className={ this.state.errMessage === '' ? styles.hideMe : styles.showErrorMessage  }>{ this.state.errMessage } </div>
                             {  /* <p><mark>Check why picking Assists does not show Help as a chapter even though it's the only chapter...</mark></p> */ }
@@ -521,7 +618,8 @@ public componentDidUpdate(prevProps){
                                 <div className={ this.state.searchCount !== 0 ? styles.hideMe : styles.showErrorMessage  }>{ noInfo } </div>
 
                                 <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
-                                    { drillItems  }
+                                    { this.state.viewType === 'React' ? reactListItems : drillItems }
+                                    {   }
                                 </Stack>
                             </div> { /* Close tag from above noInfo */}
                         </div>
@@ -1090,14 +1188,14 @@ public componentDidUpdate(prevProps){
 
     private getPageToggles() {
 
-        let togDesc = {
+        let togView = {
             //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
-            label: <span>Description</span>,
-            key: 'togggleDescription',
-            _onChange: this.updateTogggleDesc.bind(this),
-            checked: false,
-            onText: '-',
-            offText: '-',
+            label: <span>View</span>,
+            key: 'togggleView',
+            _onChange: this.updateTogggleView.bind(this),
+            checked: this.state.viewType === 'React' ? true : false,
+            onText: 'React',
+            offText: 'MZ',
             className: '',
             styles: '',
         };
@@ -1114,7 +1212,7 @@ public componentDidUpdate(prevProps){
             styles: '',
         };
 
-        let theseToggles = [togDesc , togRefinerStyle];
+        let theseToggles = [togView , togRefinerStyle];
 
         let pageToggles : IContentsToggles = {
             toggles: theseToggles,
@@ -1129,9 +1227,12 @@ public componentDidUpdate(prevProps){
 
     }
 
-    private updateTogggleDesc() {
+    private updateTogggleView() {
+
+        let viewType : IViewType = 'MZ';
+        if (this.state.viewType === 'MZ') { viewType = 'React'; }
         this.setState({
-            
+            viewType : viewType,
         });
     }
 
