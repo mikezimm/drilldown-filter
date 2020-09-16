@@ -5,7 +5,7 @@ import { Icon  } from 'office-ui-fabric-react/lib/Icon';
 import { IMyProgress, } from '../IReUsableInterfaces';
 import { IDrillItemInfo } from './drillComponent';
 
-import { buildPropsHoverCard, autoDetailsList } from '../../../../services/hoverCardService';
+import { autoDetailsList } from '../../../../services/hoverCardService';
 
 import { doesObjectExistInArray,  } from '../../../../services/arrayServices';
 
@@ -185,112 +185,67 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
 
         console.log( 'ReactListItems props & state: ', this.props, this.state );
 
-
-/**
- *                     
-                let listView = 
-                    <div className={ stylesL.timeListView : '' } >
-                    <ListView
-                        items={theseAreItems}
-                        viewFields={viewFields}
-                        compact={true}
-                        selectionMode={SelectionMode.none}
-                        //selection={this._getSelection}
-                        showFilter={true}
-                        //defaultFilter="John"
-                        filterPlaceHolder="Search..."
-                        groupByFields={groupByFields}
-                    /></div>;
- */
-
         let thisLog = null;
 
         if ( this.props.items != null && this.props.items.length > 0 ) { 
 
-        let logItems : IDrillItemInfo[] = this.props.items;
+            let panel = !this.state.showPanel || this.state.panelId === null || this.state.panelId === undefined || this.state.panelItem === null ? null : 
+                <Panel
+                    isOpen={this.state.showPanel}
+                    type={ PanelType.medium }
+                    onDismiss={this._onClosePanel}
+                    headerText={ this.state.panelId.toString() }
+                    closeButtonAriaLabel="Close"
+                    onRenderFooterContent={this._onRenderFooterContent}
+                    isLightDismiss={ true }
+                    isFooterAtBottom={ true }
+                >
+                    { autoDetailsList(this.state.panelItem, ["Title","refiners"],["search","meta","searchString"],true) }
+                </Panel>;
 
-        let itemRows = logItems.length === 0 ? null : logItems.map( h => { 
+            let listView = <div>
+            <ListView
+                items={ this.props.items }
+                viewFields={this.state.viewFields}
+                compact={true}
+                selectionMode={ this.props.includeDetails ? SelectionMode.single : SelectionMode.none }
+                selection={this._onShowPanel.bind(this)}
+                showFilter={false}
+                //defaultFilter="John"
+                filterPlaceHolder="Search..."
+                groupByFields={ this.props.groupByFields } 
+            /></div>;
 
-            let iconStyles: any = { root: {
-                //color: h.color ? h.color : "blue",
-            }};
+            //        let logTable = itemRows === null ? <div>Nothing to show</div> : <table style={{ display: 'block'}} className={stylesInfo.infoTable}>
 
-            let normalIcon = <Icon iconName={ "Info"} className={iconClassInfo} styles = {iconStyles}/>;
+            let barText = this.props.blueBar && this.props.blueBar != null ? this.props.blueBar : <span>Items</span>;
 
-            //import { buildPropsHoverCard } from '../../../../../services/hoverCardService';
-            let detailsCard = buildPropsHoverCard(h, ["property","value"], ["meta","searchString"] , true, null );
+            let webTitle = null;
 
-            let comments = '';
-            if (  h.Comments === null || h.Comments === undefined ) {}
-            else if ( h.Comments.length < 40 ) {comments = h.Comments ; }
-            else ( comments = h.Comments.slice(0,40) + '...');
+            if ( barText != null ) {
+                webTitle =<div className={ stylesInfo.infoHeading }><span style={{ paddingLeft: 20, whiteSpace: 'nowrap' }}>( { this.props.items.length }  ) Items in: { barText }</span></div>;
 
+            
+            /*stylesL.reactListView*/
+            return (
+                <div className={ '' } >
+                    <div style={{ paddingTop: 10}} className={ stylesInfo.infoPaneTight }>
+                    { webTitle }
+                    { panel }
+                    { listView }
+                </div>
+                </div>
+                );
 
-            return <tr>
-                <td> { h.Id } </td>
-                <td> { h.Story } </td>
-                <td> { h.Chapter } </td>
-                <td> { h.StartTime } </td>
-                <td> { comments } </td>
-                <td> { detailsCard } </td>
-            </tr>;
-        });
+            } else {
 
-        let panel = !this.state.showPanel || this.state.panelId === null || this.state.panelId === undefined || this.state.panelItem === null ? null : 
-            <Panel
-                isOpen={this.state.showPanel}
-                type={ PanelType.medium }
-                onDismiss={this._onClosePanel}
-                headerText={ this.state.panelId.toString() }
-                closeButtonAriaLabel="Close"
-                onRenderFooterContent={this._onRenderFooterContent}
-            >
-                { autoDetailsList(this.state.panelItem, ["Title","refiners"],["search","meta","searchString"],true) }
-            </Panel>;
-
-        let listView = <div>
-        <ListView
-            items={ this.props.items }
-            viewFields={this.state.viewFields}
-            compact={true}
-            selectionMode={ this.props.includeDetails ? SelectionMode.single : SelectionMode.none }
-            selection={this._onShowPanel.bind(this)}
-            showFilter={false}
-            //defaultFilter="John"
-            filterPlaceHolder="Search..."
-            groupByFields={ this.props.groupByFields } 
-        /></div>;
-
-        //        let logTable = itemRows === null ? <div>Nothing to show</div> : <table style={{ display: 'block'}} className={stylesInfo.infoTable}>
-
-        let barText = this.props.blueBar && this.props.blueBar != null ? this.props.blueBar : <span>Items</span>;
-
-        let webTitle = null;
-
-        if ( barText != null ) {
-            webTitle =<div className={ stylesInfo.infoHeading }><span style={{ paddingLeft: 20, whiteSpace: 'nowrap' }}>( { this.props.items.length }  ) Items in: { barText }</span></div>;
-
-        
-        /*stylesL.reactListView*/
-        return (
-            <div className={ '' } >
-                <div style={{ paddingTop: 10}} className={ stylesInfo.infoPaneTight }>
-                { webTitle }
-                { panel }
-                { listView }
-            </div>
-            </div>
-            );
-
-        } else {
-
-        // <div className={ styles.container }></div>
-        return (
-            <div className={ styles.logListView }>
-                { thisLog }
-            </div>
-            );
-        } 
+            // <div className={ styles.container }></div>
+            return (
+                <div className={ styles.logListView }>
+                    { thisLog }
+                </div>
+                );
+            } 
 
         } //if ( this.props.items != null && this.props.items.length > 0 ) {    
     } // Render
@@ -358,6 +313,8 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
        * 
        */
     private _onRenderFooterContent = (): JSX.Element => {
+        return null;
+
         return (
         <div>
             <PrimaryButton onClick={this._onClosePanel} style={{ marginRight: '8px' }}>

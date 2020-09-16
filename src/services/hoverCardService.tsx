@@ -20,6 +20,8 @@ export const autoDetailsList = ( item: any, highlightKeys: string[], specialKeys
         let showTheseProps = [];
 
         let missingProp = "Error:  prop not available";
+
+        if ( highlightKeys.length > 0 ) { showTheseProps.push( <div><h2>Highligted Props</h2></div> ); }
         highlightKeys.map( prop => {
             if ( prop === 'refElement') { showTheseProps.push(  item[prop] );
             } else  {
