@@ -27,15 +27,15 @@ import { IAnyArray } from  '../../services/listServices/listServices';
 import { mergeAriaAttributeValues } from "office-ui-fabric-react";
 import { cleanURL } from '../stringServices';
 
-export async function getAllItems( configWebURL: string, propsListName: string, thisProps: string[] ): Promise<[]>{
+export async function getAllItems( configWebURL: string, propsListName: string, thisProps: string[] ): Promise<any[]>{
 
     //lists.getById(listGUID).webs.orderBy("Title", true).get().then(function(result) {
     //let allItems : IDrillItemInfo[] = await sp.web.webs.get();
 
     let thisListObject = null;
 
-    let theseProps : any = null;
-    let returnProps: any = [];
+    let theseProps : any[] = [];
+    let returnProps: any[] = [];
     let errMessage = '';
 
     let selectProps : string[] = ['Id','Title','Template'].concat(thisProps);

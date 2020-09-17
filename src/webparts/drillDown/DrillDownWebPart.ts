@@ -64,6 +64,8 @@ export interface IDrilldownWebPartProps {
   rules1: string[];
   rules2: string[];
 
+  newMap?: any;
+
   showDisabled?: boolean;
   updateRefinersOnTextSearch?: boolean;
 
@@ -95,8 +97,8 @@ export interface IDrilldownWebPartProps {
   // 7 - TBD
 
   // 9 - Other web part options
-  webPartScenario: string; //Choice used to create mutiple versions of the webpart.
-  templateDefinition: any;
+  webPartScenario: string; //DEV, TEAM, CORP
+  listDefinition: any; //Picked list defintion :  Title
 
   advancedPivotStyles: boolean;
   pivotSize: string;
@@ -434,22 +436,35 @@ private _filterBy: any;
     return propertyPaneBuilder.getPropertyPaneConfiguration(
       this.properties,
       this.UpdateTitles.bind(this),
+      this._getListDefintions.bind(this),
       );
   }
 
-  protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any): void {
+  //Promise<IDrillItemInfo[]>
+  //was originally:  
+  //protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any): void {
 
+  protected async _getListDefintions() {
     /**
      * This section is for Templated properties
      */
-    let configWebURL = this.context.pageContext.site.absoluteUrl;
-    configWebURL = configWebURL.substring( 0, configWebURL.indexOf('/sites/') );
-    configWebURL += '/sites/PreConfigProps/';
+    if ( !this.properties.newMap  ) { 
+      console.log('GETTING LIST DEFINITIONS');
+      let configWebURL = this.context.pageContext.site.absoluteUrl;
+      configWebURL = configWebURL.substring( 0, configWebURL.indexOf('/sites/') );
+      configWebURL += '/sites/PreConfigProps/';
 
-    let thisProps: string[] = Object.keys( this.properties );
+      let thisProps: string[] = Object.keys( this.properties );
 
-    let newMap : any = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
-    console.log('newMap:',  newMap );
+      this.properties.newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+      console.log('this.properties.newMap:',  this.properties.newMap );
+    } else {
+      console.log('NOT GETTING LIST DEFINITIONS, already fetched:', this.properties.newMap);
+    }
+
+  }
+
+  protected async onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any) {
 
     if (propertyPath === 'listDefinition' && newValue !== oldValue) {
       //alert("Hey! " +propertyPath +" new value is " + newValue);
@@ -458,17 +473,17 @@ private _filterBy: any;
 
 
       if (this.properties.webPartScenario === 'DEV' ) {
-        newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+        //newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
 
       } else if (this.properties.webPartScenario === 'TEAM') {
-        newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+        //newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
 
       } else if (this.properties.webPartScenario === 'CORP') {
-        newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+        //newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
 
       }
 
-      const hasValues = Object.keys(newMap).length;
+      const hasValues = Object.keys(this.properties.newMap).length;
       console.log('onPropPaneListDefChange:', hasValues );
 
       if (hasValues !== 0) {
