@@ -21,6 +21,8 @@ import { getHelpfullError, } from '../../services/ErrorHandler';
 import { sp } from '@pnp/sp';
 
 import { propertyPaneBuilder } from '../../services/propPane/PropPaneBuilder';
+import { getAllItems } from '../../services/propPane/PropPaneFunctions';
+
 
 import { IMyProgress, ICustViewDef } from './components/IReUsableInterfaces';
 
@@ -94,6 +96,7 @@ export interface IDrilldownWebPartProps {
 
   // 9 - Other web part options
   webPartScenario: string; //Choice used to create mutiple versions of the webpart.
+  templateDefinition: any;
 
   advancedPivotStyles: boolean;
   pivotSize: string;
@@ -435,6 +438,59 @@ private _filterBy: any;
   }
 
   protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any): void {
+
+    /**
+     * This section is for Templated properties
+     */
+    let configWebURL = this.context.pageContext.site.absoluteUrl;
+    configWebURL = configWebURL.substring( 0, configWebURL.indexOf('/sites/') );
+    configWebURL += '/sites/PreConfigProps/';
+
+    let thisProps: string[] = Object.keys( this.properties );
+
+    let newMap : any = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+    console.log('newMap:',  newMap );
+
+    if (propertyPath === 'listDefinition' && newValue !== oldValue) {
+      //alert("Hey! " +propertyPath +" new value is " + newValue);
+      //this.properties.listTitle = "TitleChanged!";
+      //this.properties.colTitleText = "TitleTextChanged!";
+
+
+      if (this.properties.webPartScenario === 'DEV' ) {
+        newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+
+      } else if (this.properties.webPartScenario === 'TEAM') {
+        newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+
+      } else if (this.properties.webPartScenario === 'CORP') {
+        newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+
+      }
+
+      const hasValues = Object.keys(newMap).length;
+      console.log('onPropPaneListDefChange:', hasValues );
+
+      if (hasValues !== 0) {
+        
+        //this.properties.listTitle = newMap.listDisplay;
+        //this.properties.colTitleText = newMap.listMapping.colTitleText;
+        //this.properties.colHoverText = newMap.listMapping.colHoverText;
+
+        
+
+      } else {
+        console.log('Did NOT List Defintion... updating column name props');
+
+      }
+
+
+      this.context.propertyPane.refresh();
+    }
+
+
+
+
 
     /**
      * This section is used to determine when to refresh the pane options
