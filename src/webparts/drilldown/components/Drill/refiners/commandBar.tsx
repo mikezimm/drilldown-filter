@@ -104,7 +104,7 @@ function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: bo
       dataItems.push(item);
     }
   } else {
-    alert('Opps!  For some reason \'items\' were empty in generateData on commandBar.tsx...\n ref checkedItem = ' + checkedItem );
+    console.log('Opps!  For some reason \'items\' were empty in generateData on commandBar.tsx...\n ref checkedItem = ' + checkedItem );
   }
 
   let result: IOverflowData = {

@@ -16,6 +16,8 @@ import { PageContext } from '@microsoft/sp-page-context';
 import { makeTheTimeObject } from '../../services/dateServices';
 import { saveTheTime, getTheCurrentTime, saveAnalytics } from '../../services/createAnalytics';
 
+import { doesObjectExistInArray } from '../../services/arrayServices';
+
 import { getHelpfullError, } from '../../services/ErrorHandler';
 
 import { sp } from '@pnp/sp';
@@ -64,7 +66,7 @@ export interface IDrilldownWebPartProps {
   rules1: string[];
   rules2: string[];
 
-  newMap?: any;
+  newMap?: any[];
 
   showDisabled?: boolean;
   updateRefinersOnTextSearch?: boolean;
@@ -153,6 +155,7 @@ private _filterBy: any;
         }
       } 
 
+      this._getListDefintions(true, true);
       //console.log('window.location',window.location);
       sp.setup({
         spfxContext: this.context
@@ -225,10 +228,12 @@ private _filterBy: any;
     
     if ( str === null || str === undefined ) { return result; }
     try {
+      str = str.replace(/\\\"/g,'"').replace(/\\'"/g,"'"); //Replace any cases where I copied the hashed characters from JSON file directly.
       result = JSON.parse(str);
 
     } catch(e) {
-      alert(message + ' is not a valid JSON object.  Please fix it and re-run');
+      console.log(message + ' is not a valid JSON object.  Please fix it and re-run');
+
     }
     
     return result;
@@ -444,11 +449,13 @@ private _filterBy: any;
   //was originally:  
   //protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any): void {
 
-  protected async _getListDefintions() {
+  //runAsync is an idea that is not currently being used.
+  protected async _getListDefintions(forceUpdate: boolean, runAsync: boolean) {
     /**
      * This section is for Templated properties
      */
-    if ( !this.properties.newMap  ) { 
+    let newMap = [];
+    if ( !this.properties.newMap || forceUpdate === true ) { 
       console.log('GETTING LIST DEFINITIONS');
       let configWebURL = this.context.pageContext.site.absoluteUrl;
       configWebURL = configWebURL.substring( 0, configWebURL.indexOf('/sites/') );
@@ -456,21 +463,35 @@ private _filterBy: any;
 
       let thisProps: string[] = Object.keys( this.properties );
 
-      this.properties.newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
+      //Must remove 'newMap' from props because it's one can't be mapped.
+      //let newMapIdx = thisProps.indexOf('newMap');
+      //if (newMapIdx > -1) { thisProps.splice(newMapIdx, 1); }
+
+      //if ( runAsync === true ) {
+        newMap = await getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps, runAsync );
+      //} else {
+      //  newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps, runAsync );
+      //}
+
+      this.properties.newMap = newMap;
       console.log('this.properties.newMap:',  this.properties.newMap );
+
     } else {
       console.log('NOT GETTING LIST DEFINITIONS, already fetched:', this.properties.newMap);
-    }
+      newMap = this.properties.newMap;
 
+    }
+    
+    return newMap;
   }
 
   protected async onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any) {
 
+//    console.log('PropFieldChange:', propertyPath, oldValue, newValue);
     if (propertyPath === 'listDefinition' && newValue !== oldValue) {
       //alert("Hey! " +propertyPath +" new value is " + newValue);
       //this.properties.listTitle = "TitleChanged!";
       //this.properties.colTitleText = "TitleTextChanged!";
-
 
       if (this.properties.webPartScenario === 'DEV' ) {
         //newMap = getAllItems(configWebURL, 'DrilldownPreConfigProps', thisProps );
@@ -483,16 +504,69 @@ private _filterBy: any;
 
       }
 
+      let thisProps: string[] = Object.keys( this.properties );
       const hasValues = Object.keys(this.properties.newMap).length;
-      console.log('onPropPaneListDefChange:', hasValues );
+//      console.log('listDefinition Old & New: ', oldValue, newValue );
+//      console.log('PropFieldChange keys: ', hasValues );
 
       if (hasValues !== 0) {
-        
+        console.log('this.properties.newMap:', this.properties.newMap);
+        let defIndex : any = doesObjectExistInArray(this.properties.newMap,'Title',newValue);
+        console.log('defIndex (Story=1,Chapter=0): ', newValue, defIndex);
+        if ( defIndex !== false ) {
+//          console.log('PropFieldChange:', propertyPath, oldValue, newValue);
+          thisProps.map( thisWebPartProp => {
+            console.log('thisWebPartProp: ', thisWebPartProp );
+            if ( thisWebPartProp !== 'listDefinition') {  
+//              console.log('thisWebPartProp !== listDefinition:', defIndex, thisWebPartProp);
+
+              if ( Object.keys(this.properties.newMap[defIndex]).indexOf(thisWebPartProp) < 0 ) {
+                console.log('This thisWebPartProp is not to be mapped or updated:', thisWebPartProp );
+              } else {
+
+                let potentialValue = this.properties.newMap[defIndex][thisWebPartProp] ? this.properties.newMap[defIndex][thisWebPartProp] : undefined;
+
+                if ( potentialValue ) { //If value exists, continue
+                  console.log('if ( potentialValue ) { ', potentialValue);
+                  potentialValue = potentialValue.replace('\"','"'); //Replace any cases where I copied the hashed characters from JSON file directly.
+                  console.log('this.properties[thisWebPartProp]:', this.properties[thisWebPartProp]);
+                  if ( this.properties[thisWebPartProp] !== potentialValue ) { //If values are different, then update
+                    console.log('potentialValue.replace() ', this.properties[thisWebPartProp], potentialValue);
+                    if ( potentialValue === '') { //If value is intentionally empty string, do the update
+                      this.properties[thisWebPartProp] = potentialValue;
+                    } else {
+                      this.properties[thisWebPartProp] = potentialValue;
+                    }
+                  }
+                } else { 
+                  if ( ['rules0','rules1','rules2'].indexOf(thisWebPartProp) > -1 ) { //These should be arrays of strings
+                    if ( thisWebPartProp === 'newMap' ) { alert('Hey!  Why are we trying to set newMap????') ; }
+                    this.properties[thisWebPartProp] = [''];
+                  } else {
+                    this.properties[thisWebPartProp] = '';
+                  }
+  
+                }
+              }
+
+
+            } else { 
+              console.log('thisWebPartProp === listDefinition:', defIndex, thisWebPartProp);
+              this.properties[thisWebPartProp] = newValue;  }
+          });
+
+        } else {
+          if ( newValue.toLowerCase() !== 'na') {
+            alert('I think there is an error in onPropertyPaneFieldChanged:  \ndefIndex is false.\nCan\'t find listDefintion of ' + newValue);
+          } else {
+            console.log('I think there is an error in onPropertyPaneFieldChanged:  \ndefIndex is false.\nCan\'t find listDefintion of ' + newValue);
+          }
+
+        }
+
         //this.properties.listTitle = newMap.listDisplay;
         //this.properties.colTitleText = newMap.listMapping.colTitleText;
         //this.properties.colHoverText = newMap.listMapping.colHoverText;
-
-        
 
       } else {
         console.log('Did NOT List Defintion... updating column name props');
@@ -502,10 +576,6 @@ private _filterBy: any;
 
       this.context.propertyPane.refresh();
     }
-
-
-
-
 
     /**
      * This section is used to determine when to refresh the pane options
