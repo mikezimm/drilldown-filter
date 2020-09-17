@@ -83,7 +83,7 @@ export async function getAllItems( drillList: IDrillList, addTheseItemsToState: 
 
     console.log('Post-Sort: getAllItems', allRefiners);
 
-    addTheseItemsToState(allItems, errMessage, allRefiners );
+    addTheseItemsToState(drillList, allItems, errMessage, allRefiners );
     return allItems;
 
 }

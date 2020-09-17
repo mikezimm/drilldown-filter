@@ -74,10 +74,23 @@ import { refinerRuleItems } from '../../webparts/drilldown/components/IReUsableI
     */
 
 export class IntroPage {
-  public getPropertyPanePage(webPartProps: IDrilldownWebPartProps, _onClickUpdateTitles ): IPropertyPanePage {
+  public getPropertyPanePage(webPartProps: IDrilldownWebPartProps, _onClickUpdateTitles, _getListDefintions ): IPropertyPanePage {
 
     let ruleChoices = refinerRuleItems();
     let showDisabled = false;
+
+    //let newMap = _getListDefintions(true);
+
+    let theListChoices : IPropertyPaneDropdownOption[] = [];
+
+    //Tried checking but for some reason this returns false when the promise for .newMap was actually resolved.
+    //if ( webPartProps.newMap && webPartProps.newMap.length > 0 ) {
+      theListChoices.push ( { key: 'na', text: 'na' } );
+      theListChoices = theListChoices.concat(  webPartProps.newMap.map( d => {
+        return { key: d.Title, text: d.Title };
+      }) );
+
+    //}
 
     if ( webPartProps.rules2 && ( webPartProps.rules2.indexOf('groupByDayOfWeek') > -1 ||  webPartProps.rules2.indexOf('groupByMonthsMMM') > -1 ) ) { showDisabled = true;}
 
@@ -103,7 +116,15 @@ export class IntroPage {
           ]
         },
 
-
+        {  groupName: 'Get pre-configured setup',
+            isCollapsed: false ,
+            groupFields: [
+              PropertyPaneDropdown('listDefinition', <IPropertyPaneDropdownProps>{
+                label: 'Pre-defined setup choices',
+                options: theListChoices,
+                selectedKey: webPartProps.listDefinition != '' ? webPartProps.listDefinition : 'na',
+            }),
+            ]},
                 
         // 2 - Source and destination list information
         {  groupName: 'Create-Verify Lists',

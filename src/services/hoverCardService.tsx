@@ -13,31 +13,15 @@ import { ColoredLine, ProjectTitleElement, MyIcon } from './drawServices';
 import { mergeStyles } from 'office-ui-fabric-react/lib/Styling';
 import { Fabric, Stack, IStackTokens, initializeIcons } from 'office-ui-fabric-react';
 
-export function buildPropsHoverCard (item: any, highlightKeys: string[], specialKeys: string[], showOthers: boolean, icon: any ) {
-
-    //let highlightKeys = ["Title","Email","IsSiteAdmin","LoginName", "Id"];
-    //let specialKeys = highlightKeys.concat("meta","searchString");
-
-    const iconClassInfo = mergeStyles({
-        fontSize: 18,
-        margin: '5px',
-        verticalAlign: 'bottom',
-        padding: '0px !important',
-      });
-
-    let iconStyles: any = { root: {
-        //color: h.color ? h.color : "blue",
-      }};
-
-    let normalIcon = icon !== null ? icon : <Icon iconName={ "Info"} className={ iconClassInfo } styles = { iconStyles }/>;
-
-    const onRenderHoverCard = (): JSX.Element => {
+export const autoDetailsList = ( item: any, highlightKeys: string[], specialKeys: string[], showOthers: boolean ): any[] => {
 
         //Build Highlighted Props:
         let hoverWebStyle = { fontWeight: 700};
         let showTheseProps = [];
 
         let missingProp = "Error:  prop not available";
+
+        if ( highlightKeys.length > 0 ) { showTheseProps.push( <div><h2>Highligted Props</h2></div> ); }
         highlightKeys.map( prop => {
             if ( prop === 'refElement') { showTheseProps.push(  item[prop] );
             } else  {
@@ -77,6 +61,34 @@ export function buildPropsHoverCard (item: any, highlightKeys: string[], special
                     showTheseProps.push(  <p><span style={hoverMinorPropStyle}>{ prop }:</span> { propVal }</p> ); }
             });
         }
+
+  return showTheseProps;
+
+};
+
+
+export function buildPropsHoverCard (item: any, highlightKeys: string[], specialKeys: string[], showOthers: boolean, icon: any ) {
+
+    //let highlightKeys = ["Title","Email","IsSiteAdmin","LoginName", "Id"];
+    //let specialKeys = highlightKeys.concat("meta","searchString");
+
+    const iconClassInfo = mergeStyles({
+        fontSize: 18,
+        margin: '5px',
+        verticalAlign: 'bottom',
+        padding: '0px !important',
+      });
+
+    let iconStyles: any = { root: {
+        //color: h.color ? h.color : "blue",
+      }};
+
+    let normalIcon = icon !== null ? icon : <Icon iconName={ "Info"} className={ iconClassInfo } styles = { iconStyles }/>;
+
+    const onRenderHoverCard = (): JSX.Element => {
+
+        //Build Highlighted Props:
+        let showTheseProps = autoDetailsList(item, highlightKeys, specialKeys, showOthers);
 
         let tipLine = showTheseProps.length > 20 ?  <p><span style={{fontSize: 'x-large', fontWeight: 600, color: 'darkblue'}}><mark>TIP: </mark>Use Mouse Wheel to scroll down page, Don't use scroll bar!</span></p> : null ;
 
