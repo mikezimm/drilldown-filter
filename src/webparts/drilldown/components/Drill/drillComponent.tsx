@@ -200,6 +200,17 @@ export interface IDrillDownProps {
 
 }
 
+export type IStatType = 'sum' | 'max' | 'mini' | 'range' | '';
+
+export interface IStat {
+    prop: string;
+    label: string;
+    type: IStatType;
+    val1?: any;
+    val2?: any;
+    result?: string;
+}
+
 export interface IDrillDownState {
 
     allowOtherSites?: boolean; //default is local only.  Set to false to allow provisioning parts on other sites.
@@ -217,6 +228,7 @@ export interface IDrillDownState {
     searchMeta: string[];
 
     searchedItems: IDrillItemInfo[];
+    stats: IStat[];
     first20searchedItems: IDrillItemInfo[];
 
     progress: IMyProgress;
@@ -379,6 +391,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             allItems: [],
             searchedItems: [],
+            stats: [],
             first20searchedItems: [],
             searchCount: 0,
 
