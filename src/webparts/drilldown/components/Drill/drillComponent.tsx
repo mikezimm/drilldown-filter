@@ -354,6 +354,9 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
     public constructor(props:IDrillDownProps){
         super(props);
 
+        /**
+         * This is copied later in code when you have to call the data in case something changed.
+         */
         let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, '');
         let errMessage = drillList.refinerRules === undefined ? 'Invalid Rule set: ' +  this.props.rules : '';
         if ( drillList.refinerRules === undefined ) { drillList.refinerRules = [[],[],[]] ; } 
@@ -432,6 +435,9 @@ public componentDidUpdate(prevProps){
     console.log('DIDUPDATE setting Progress:', this.props.progress);
     if (this.props.progress !== prevProps.progress) {  rebuildPart = true ; }
 
+    if ( JSON.stringify(prevProps.refiners) !== JSON.stringify(this.props.refiners )) {
+        rebuildPart = true;
+    }
     if ( prevProps.listName !== this.props.listName || prevProps.webURL !== this.props.webURL ) {
       rebuildPart = true ;
     }
@@ -662,15 +668,21 @@ public componentDidUpdate(prevProps){
 
 
     private getAllItemsCall() {
-        let listGuid = '';
 
-        let result : any = getAllItems( this.state.drillList, this.addTheseItemsToState.bind(this), this.setProgress.bind(this), null );
+        /**
+         * This is copied from constructor when you have to call the data in case something changed.
+         */
+        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, '');
+        let errMessage = drillList.refinerRules === undefined ? 'Invalid Rule set: ' +  this.props.rules : '';
+        if ( drillList.refinerRules === undefined ) { drillList.refinerRules = [[],[],[]] ; } 
+
+        let result : any = getAllItems( drillList, this.addTheseItemsToState.bind(this), this.setProgress.bind(this), null );
 
     }
 
-    private addTheseItemsToState( allItems , errMessage : string, refinerObj: IRefiners ) {
+    private addTheseItemsToState( drillList: IDrillList, allItems , errMessage : string, refinerObj: IRefiners ) {
 
-        let newFilteredItems : IDrillItemInfo[] = this.getNewFilteredItems( '', this.state.searchMeta, allItems, 0 );
+        //let newFilteredItems : IDrillItemInfo[] = this.getNewFilteredItems( '', this.state.searchMeta, allItems, 0 );
         let pivotCats : any = [];
         let cmdCats : any = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
@@ -678,14 +690,15 @@ public componentDidUpdate(prevProps){
 
         this.setState({
             allItems: allItems,
-            searchedItems: newFilteredItems,
-            searchCount: newFilteredItems.length,
+            searchedItems: allItems, //newFilteredItems,  //Replaced with allItems to update when props change.
+            searchCount: allItems.length,
             errMessage: errMessage,
             searchText: '',
-            searchMeta: this.state.searchMeta,
+            searchMeta: [pivCats.all.title],
             refinerObj: refinerObj,
             pivotCats: pivotCats,
             cmdCats: cmdCats,
+            drillList: drillList,
         });
 
         //This is required so that the old list items are removed and it's re-rendered.

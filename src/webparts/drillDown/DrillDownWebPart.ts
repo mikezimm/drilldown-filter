@@ -510,15 +510,11 @@ private _filterBy: any;
 //      console.log('PropFieldChange keys: ', hasValues );
 
       if (hasValues !== 0) {
-        console.log('this.properties.newMap:', this.properties.newMap);
         let defIndex : any = doesObjectExistInArray(this.properties.newMap,'Title',newValue);
-        console.log('defIndex (Story=1,Chapter=0): ', newValue, defIndex);
         if ( defIndex !== false ) {
-//          console.log('PropFieldChange:', propertyPath, oldValue, newValue);
           thisProps.map( thisWebPartProp => {
-            console.log('thisWebPartProp: ', thisWebPartProp );
+
             if ( thisWebPartProp !== 'listDefinition') {  
-//              console.log('thisWebPartProp !== listDefinition:', defIndex, thisWebPartProp);
 
               if ( Object.keys(this.properties.newMap[defIndex]).indexOf(thisWebPartProp) < 0 ) {
                 console.log('This thisWebPartProp is not to be mapped or updated:', thisWebPartProp );
@@ -527,11 +523,15 @@ private _filterBy: any;
                 let potentialValue = this.properties.newMap[defIndex][thisWebPartProp] ? this.properties.newMap[defIndex][thisWebPartProp] : undefined;
 
                 if ( potentialValue ) { //If value exists, continue
-                  console.log('if ( potentialValue ) { ', potentialValue);
+
                   potentialValue = potentialValue.replace('\"','"'); //Replace any cases where I copied the hashed characters from JSON file directly.
-                  console.log('this.properties[thisWebPartProp]:', this.properties[thisWebPartProp]);
+
+                  if ( typeof this.properties[thisWebPartProp] === 'boolean') {
+                    if ( potentialValue === "true" ) { potentialValue = true; }
+                    else if ( potentialValue === "false" ) { potentialValue = false; }
+                  }
+
                   if ( this.properties[thisWebPartProp] !== potentialValue ) { //If values are different, then update
-                    console.log('potentialValue.replace() ', this.properties[thisWebPartProp], potentialValue);
                     if ( potentialValue === '') { //If value is intentionally empty string, do the update
                       this.properties[thisWebPartProp] = potentialValue;
                     } else {
