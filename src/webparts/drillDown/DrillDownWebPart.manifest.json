@@ -34,6 +34,9 @@
       "viewWidth3": 400,
       "listDefinition": "",
       "includeDetails": true,
+
+      "showCatCounts": false,
+      "showSummary": false,
       
       "groupByFields": "",
       "viewJSON1": "[{ \"name\": \"Id\", \"displayName\": \"Id\", \"minWidth\": 50 },{ \"name\": \"Title\", \"displayName\": \"Title\", \"minWidth\": 200 },{ \"name\": \"Created\", \"displayName\": \"Created\", \"minWidth\": 200 },{ \"name\": \"Modified\", \"displayName\": \"Modified\", \"minWidth\": 200 }]",

@@ -85,19 +85,21 @@ function  _functionOnClick(item){
     console.log('item', item);
 }
 
-function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: boolean, onClick: any): IOverflowData {
+function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: boolean, showCatCounts: boolean, onClick: any): IOverflowData {
   const dataItems = [];
   let cacheKey = '';
   if ( items ) {
     for (let index = 0; index < items.length; index++) {
-      let ariaLabel = items[index].name + ' count of ' + items[index].count;
+      let countLabel = showCatCounts ? ' (' + items[index].count + ')' : '';
+
+      let ariaLabel = items[index].name + countLabel;
       const item = {
         key: items[index].key,
-        name: items[index].name + ' (' + items[index].count + ')',
+        name: items[index].name + countLabel,
         icon: items[index].icon ? items[index].icon : null,
         checked: items[index].name === checkedItem ? true : false,
         disabled: items[index].disabled,
-        ariaLabel: items[index].name + ' count of ' + items[index].count,
+        ariaLabel: items[index].name + countLabel,
         commandBarButtonAs: items[index].icon ? customButtonWithIcon : customButtonNoIcon,
         onClick: onClick,
         count: items[index].count,
@@ -132,7 +134,7 @@ export interface IResizeGroupOverflowSetExampleProps {
   checkedItem: string;
   WebpartHeight?:  number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
   WebpartWidth?:   number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
-
+  showCatCounts: boolean;
 }
 
 export interface IResizeGroupOverflowSetExampleState {
@@ -205,7 +207,7 @@ public componentDidUpdate(prevProps){
   public render(): JSX.Element {
     const { numberOfItems, cachingEnabled, buttonsChecked, short, onGrowDataEnabled } = this.state;
     //const dataToRender = generateData(numberOfItems, cachingEnabled, buttonsChecked);
-    const commandsToRender = generateData( this.props.items , this.props.checkedItem, this.props.cachingEnabled, this.props.onClick );
+    const commandsToRender = generateData( this.props.items , this.props.checkedItem, this.props.cachingEnabled, this.props.showCatCounts, this.props.onClick );
 
     return (
       <div className={short ? styles.resizeIsShort : 'notResized'}>

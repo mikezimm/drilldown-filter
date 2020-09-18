@@ -165,6 +165,9 @@ export interface IDrillDownProps {
     showDisabled?: boolean;
     updateRefinersOnTextSearch?: boolean;
 
+    showCatCounts?: boolean;
+    showSummary?: boolean;
+
     /**    
      * 'parseBySemiColons' |
      * 'groupBy10s' |  'groupBy100s' |  'groupBy1000s' |  'groupByMillions' |
@@ -220,6 +223,9 @@ export interface IDrillDownState {
     allLoaded: boolean;
 
     showTips: boolean;
+
+    showCatCounts: boolean;
+    showSummary: boolean;
 
     currentPage: string;
     searchCount: number;
@@ -382,6 +388,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             drillList: drillList,
 
             showTips: false,
+            showCatCounts: this.props.showCatCounts ? this.props.showCatCounts : false,
+            showSummary: this.props.showSummary ? this.props.showSummary : false,
 
             viewType: this.props.viewType === undefined || this.props.viewType === null ? 'React' : this.props.viewType,
 
@@ -560,6 +568,7 @@ public componentDidUpdate(prevProps){
                     cachingEnabled = { true }
                     checkedItem = { this.state.searchMeta[0] }
                     onClick = { this._onSearchForMetaCmd0.bind(this)}
+                    showCatCounts = { this.state.showCatCounts }
                 ></ResizeGroupOverflowSetExample></div> : null;
 
                 thisIsRefiner1 = showRefiner1 ?  <div><ResizeGroupOverflowSetExample
@@ -567,6 +576,7 @@ public componentDidUpdate(prevProps){
                     cachingEnabled = { true }
                     checkedItem = { this.state.searchMeta[1] }
                     onClick = { this._onSearchForMetaCmd1.bind(this)}
+                    showCatCounts = { this.state.showCatCounts }
                 ></ResizeGroupOverflowSetExample></div> : null;
 
                 thisIsRefiner2 = showRefiner2 ?  <div><ResizeGroupOverflowSetExample
@@ -574,6 +584,7 @@ public componentDidUpdate(prevProps){
                     cachingEnabled = { true }
                     checkedItem = { this.state.searchMeta[2] }
                     onClick = { this._onSearchForMetaCmd2.bind(this)}
+                    showCatCounts = { this.state.showCatCounts }
                 ></ResizeGroupOverflowSetExample></div> : null;
 
                 if ( showRefiner0 ) { refinersObjects.push( thisIsRefiner0 ) ; }
@@ -768,13 +779,27 @@ public componentDidUpdate(prevProps){
 
     private findCountOfAriaLabel( item: any ) {
         let result = '';
+        let isValue = false;
         if ( item.currentTarget && item.currentTarget.ariaLabel && item.currentTarget.ariaLabel.length > 0 ) {
-            let countOf = item.currentTarget.ariaLabel.split(' count of ');
-            if ( countOf.length > 1 ) { 
-                result = countOf[1];
-                console.log('Found count of: ' , countOf[1] );
+
+            //Modified version of this answer:  https://stackoverflow.com/a/13807294  (less the [^\d]* )
+
+            let searchText: string = item.currentTarget.ariaLabel;
+            let openPar = searchText.lastIndexOf('(');
+            let closePar = searchText.lastIndexOf(')');
+
+            let regex = /^.*?\((\d+)[^\d]*\).*$/g;
+            searchText.match(regex);
+
+
+            if ( openPar > 1 && closePar > openPar) {
+                //Found a pair of paranthesis, assume number is in between it.
+                result = searchText.substring(openPar + 1, closePar);
+                isValue = /^\d+$/.test(result);
+
+                console.log('findCountOfAriaLabel:', result, isValue );
             } else {
-                console.log ('Did not find count of...' );
+                console.log ('Did not find numbers between ()' );
             }
         }
         return result;
@@ -804,6 +829,13 @@ public componentDidUpdate(prevProps){
         return '';
     }
 
+    public _getValidCountFromClickItem( item, validText: string) {
+        if ( this.state.showCatCounts === true ) {
+            let countOf = this.findCountOfAriaLabel( item );
+            validText = validText.replace(' ('+countOf+')','');
+        }
+        return validText;
+    }
     public _searchForText = (item): void => {
         //This sends back the correct pivot category which matches the category on the tile.
         this.searchForItems( item, this.state.searchMeta, 0, 'text' );
@@ -820,8 +852,8 @@ public componentDidUpdate(prevProps){
     public _onSearchForMetaCmd0 = (item): void => {
         //This sends back the correct pivot category which matches the category on the tile.
         let validText = this.findMatchtingElementText( item );
-        let countOf = this.findCountOfAriaLabel( item );
-        validText = validText.replace(' ('+countOf+')','');
+        validText = this._getValidCountFromClickItem( item, validText );
+
         this.searchForItems( this.state.searchText, [validText], 0, 'meta' );
     }
 
@@ -831,8 +863,8 @@ public componentDidUpdate(prevProps){
 
     public _onSearchForMetaCmd1= (item): void => {
         let validText = this.findMatchtingElementText(item);
-        let countOf = this.findCountOfAriaLabel( item );
-        validText = validText.replace(' ('+countOf+')','');
+        validText = this._getValidCountFromClickItem( item, validText );
+
         this._onSearchForMeta1(validText);
     }
 
@@ -862,8 +894,7 @@ public componentDidUpdate(prevProps){
 
     public _onSearchForMetaCmd2= (item): void => {
         let validText = this.findMatchtingElementText(item);
-        let countOf = this.findCountOfAriaLabel( item );
-        validText = validText.replace(' ('+countOf+')','');
+        validText = this._getValidCountFromClickItem( item, validText );
 
         this._onSearchForMeta2(validText);
     }
@@ -1236,6 +1267,30 @@ public componentDidUpdate(prevProps){
 
     private getPageToggles() {
 
+        let togCounts = {
+            //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
+            label: <span>Counts</span>,
+            key: 'togggleCount',
+            _onChange: this.updateTogggleCount.bind(this),
+            checked: this.state.showCatCounts === true ? true : false,
+            onText: '',
+            offText: '',
+            className: '',
+            styles: '',
+        };
+
+        let togSummary = {
+            //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
+            label: <span>Summary</span>,
+            key: 'togggleStats',
+            _onChange: this.updateTogggleSummary.bind(this),
+            checked: this.state.showSummary === true ? true : false,
+            onText: '',
+            offText: '',
+            className: '',
+            styles: '',
+        };
+
         let togView = {
             //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
             label: <span>View</span>,
@@ -1260,7 +1315,7 @@ public componentDidUpdate(prevProps){
             styles: '',
         };
 
-        let theseToggles = [togView , togRefinerStyle];
+        let theseToggles = [togCounts, togSummary, togView , togRefinerStyle];
 
         let pageToggles : IContentsToggles = {
             toggles: theseToggles,
@@ -1273,6 +1328,18 @@ public componentDidUpdate(prevProps){
 
         return pageToggles;
 
+    }
+
+    private updateTogggleSummary() {
+        this.setState({
+            showSummary: !this.state.showSummary,
+          });
+    }
+
+    private updateTogggleCount() {
+        this.setState({
+            showCatCounts: !this.state.showCatCounts,
+          });
     }
 
     private updateTogggleView() {
