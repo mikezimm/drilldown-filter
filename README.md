@@ -38,6 +38,9 @@ Version|Date|Comments
 **THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.**
 
 ---
+## Todo:
+Add css bar chart like this one?
+https://codepen.io/richardramsay/pen/ZKmQJv?editors=1100
 
 
 ## Installation steps

@@ -66,6 +66,9 @@ export interface IDrilldownWebPartProps {
   rules1: string[];
   rules2: string[];
 
+  showCatCounts: boolean;
+  showSummary: boolean;
+
   newMap?: any[];
 
   showDisabled?: boolean;

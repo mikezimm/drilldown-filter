@@ -90,15 +90,16 @@ export interface IMyPivCat {
     title: string;
     desc: string;
     order: number;
+    count: number;
 }
 
 export const pivCats = {
-    all: {title: 'All', desc: '', order: 1},
-    newWebs: {title: 'New' , desc: '', order: 1},
-    recCreate:  {title: 'RecentlyCreated' , desc: '', order: 1},
-    oldCreate: {title: 'Old', desc: '', order: 9 },
-    recUpdate: {title: 'RecentlyUpdated', desc: '', order: 9 },
-    oldUpdate: {title: 'Stale', desc: '', order: 9 },
+    all: {title: 'All', desc: '', order: 1, count: null },
+    newWebs: {title: 'New' , desc: '', order: 1, count: null },
+    recCreate:  {title: 'RecentlyCreated' , desc: '', order: 1, count: null },
+    oldCreate: {title: 'Old', desc: '', order: 9, count: null  },
+    recUpdate: {title: 'RecentlyUpdated', desc: '', order: 9, count: null  },
+    oldUpdate: {title: 'Stale', desc: '', order: 9, count: null  },
 };
 
 
@@ -165,6 +166,9 @@ export interface IDrillDownProps {
     showDisabled?: boolean;
     updateRefinersOnTextSearch?: boolean;
 
+    showCatCounts?: boolean;
+    showSummary?: boolean;
+
     /**    
      * 'parseBySemiColons' |
      * 'groupBy10s' |  'groupBy100s' |  'groupBy1000s' |  'groupByMillions' |
@@ -200,6 +204,17 @@ export interface IDrillDownProps {
 
 }
 
+export type IStatType = 'sum' | 'max' | 'mini' | 'range' | '';
+
+export interface IStat {
+    prop: string;
+    label: string;
+    type: IStatType;
+    val1?: any;
+    val2?: any;
+    result?: string;
+}
+
 export interface IDrillDownState {
 
     allowOtherSites?: boolean; //default is local only.  Set to false to allow provisioning parts on other sites.
@@ -210,6 +225,9 @@ export interface IDrillDownState {
 
     showTips: boolean;
 
+    showCatCounts: boolean;
+    showSummary: boolean;
+
     currentPage: string;
     searchCount: number;
 
@@ -217,6 +235,7 @@ export interface IDrillDownState {
     searchMeta: string[];
 
     searchedItems: IDrillItemInfo[];
+    stats: IStat[];
     first20searchedItems: IDrillItemInfo[];
 
     progress: IMyProgress;
@@ -370,6 +389,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             drillList: drillList,
 
             showTips: false,
+            showCatCounts: this.props.showCatCounts ? this.props.showCatCounts : false,
+            showSummary: this.props.showSummary ? this.props.showSummary : false,
 
             viewType: this.props.viewType === undefined || this.props.viewType === null ? 'React' : this.props.viewType,
 
@@ -379,6 +400,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             allItems: [],
             searchedItems: [],
+            stats: [],
             first20searchedItems: [],
             searchCount: 0,
 
@@ -547,6 +569,7 @@ public componentDidUpdate(prevProps){
                     cachingEnabled = { true }
                     checkedItem = { this.state.searchMeta[0] }
                     onClick = { this._onSearchForMetaCmd0.bind(this)}
+                    showCatCounts = { this.state.showCatCounts }
                 ></ResizeGroupOverflowSetExample></div> : null;
 
                 thisIsRefiner1 = showRefiner1 ?  <div><ResizeGroupOverflowSetExample
@@ -554,6 +577,7 @@ public componentDidUpdate(prevProps){
                     cachingEnabled = { true }
                     checkedItem = { this.state.searchMeta[1] }
                     onClick = { this._onSearchForMetaCmd1.bind(this)}
+                    showCatCounts = { this.state.showCatCounts }
                 ></ResizeGroupOverflowSetExample></div> : null;
 
                 thisIsRefiner2 = showRefiner2 ?  <div><ResizeGroupOverflowSetExample
@@ -561,6 +585,7 @@ public componentDidUpdate(prevProps){
                     cachingEnabled = { true }
                     checkedItem = { this.state.searchMeta[2] }
                     onClick = { this._onSearchForMetaCmd2.bind(this)}
+                    showCatCounts = { this.state.showCatCounts }
                 ></ResizeGroupOverflowSetExample></div> : null;
 
                 if ( showRefiner0 ) { refinersObjects.push( thisIsRefiner0 ) ; }
@@ -686,7 +711,9 @@ public componentDidUpdate(prevProps){
         let pivotCats : any = [];
         let cmdCats : any = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
-        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, 0 , 0 ) );
+        let countTree: number[] = refinerObj.childrenObjs.map( o => { return o.itemCount; }) ;
+
+        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0, refinerObj) );
 
         this.setState({
             allItems: allItems,
@@ -714,6 +741,7 @@ public componentDidUpdate(prevProps){
             title: title,
             desc: desc,
             order: order,
+            count: null,
         };
 
         return pivCat;
@@ -753,6 +781,34 @@ public componentDidUpdate(prevProps){
         return '';
     }
 
+    private findCountOfAriaLabel( item: any ) {
+        let result = '';
+        let isValue = false;
+        if ( item.currentTarget && item.currentTarget.ariaLabel && item.currentTarget.ariaLabel.length > 0 ) {
+
+            //Modified version of this answer:  https://stackoverflow.com/a/13807294  (less the [^\d]* )
+
+            let searchText: string = item.currentTarget.ariaLabel;
+            let openPar = searchText.lastIndexOf('(');
+            let closePar = searchText.lastIndexOf(')');
+
+            let regex = /^.*?\((\d+)[^\d]*\).*$/g;
+            searchText.match(regex);
+
+
+            if ( openPar > 1 && closePar > openPar) {
+                //Found a pair of paranthesis, assume number is in between it.
+                result = searchText.substring(openPar + 1, closePar);
+                isValue = /^\d+$/.test(result);
+
+                console.log('findCountOfAriaLabel:', result, isValue );
+            } else {
+                console.log ('Did not find numbers between ()' );
+            }
+        }
+        return result;
+    }
+
     private findMatchtingElementText( item: any ) {
 
         let hasItemKey = item.props && item.props.itemKey ? true : false ;
@@ -777,6 +833,13 @@ public componentDidUpdate(prevProps){
         return '';
     }
 
+    public _getValidCountFromClickItem( item, validText: string) {
+        if ( this.state.showCatCounts === true ) {
+            let countOf = this.findCountOfAriaLabel( item );
+            validText = validText.replace(' ('+countOf+')','');
+        }
+        return validText;
+    }
     public _searchForText = (item): void => {
         //This sends back the correct pivot category which matches the category on the tile.
         this.searchForItems( item, this.state.searchMeta, 0, 'text' );
@@ -792,7 +855,9 @@ public componentDidUpdate(prevProps){
     //This function works great for Pivots, not neccessarily anything with icons.
     public _onSearchForMetaCmd0 = (item): void => {
         //This sends back the correct pivot category which matches the category on the tile.
-        let validText = this.findMatchtingElementText( item);
+        let validText = this.findMatchtingElementText( item );
+        validText = this._getValidCountFromClickItem( item, validText );
+
         this.searchForItems( this.state.searchText, [validText], 0, 'meta' );
     }
 
@@ -802,6 +867,8 @@ public componentDidUpdate(prevProps){
 
     public _onSearchForMetaCmd1= (item): void => {
         let validText = this.findMatchtingElementText(item);
+        validText = this._getValidCountFromClickItem( item, validText );
+
         this._onSearchForMeta1(validText);
     }
 
@@ -831,6 +898,8 @@ public componentDidUpdate(prevProps){
 
     public _onSearchForMetaCmd2= (item): void => {
         let validText = this.findMatchtingElementText(item);
+        validText = this._getValidCountFromClickItem( item, validText );
+
         this._onSearchForMeta2(validText);
     }
 
@@ -857,7 +926,15 @@ public componentDidUpdate(prevProps){
 
   private getCurrentRefinerTree(newMeta: string[] ) {
 
+    let result = {
+        refinerTree: null,
+        countTree: null,
+        multiTree: null,
+    };
+
     let refinerTree: any[] = [];  
+    let countTree: any[] = [];
+    let multiTree: any[] = [];
     // End result would be something like this:
     /**
      * 
@@ -869,21 +946,34 @@ public componentDidUpdate(prevProps){
      * ]
      */
     refinerTree.push ( this.state.refinerObj.childrenKeys);
+    countTree.push( this.state.refinerObj.childrenObjs.map( o => { return o.itemCount; }) );
+    multiTree.push( this.state.refinerObj.childrenObjs.map( o => { return o.multiCount; }) );
 
     let newKeyIndex0 = this.state.refinerObj.childrenKeys.indexOf(newMeta[ 0 ]);
     if ( newKeyIndex0 > -1 ) { 
         refinerTree.push ( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenKeys);
+        countTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs.map( o => { return o.itemCount; }) );
+        multiTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs.map( o => { return o.multiCount; }) );
 
         let newKeyIndex1 = this.state.refinerObj.childrenObjs[newKeyIndex0].childrenKeys.indexOf(newMeta[ 1 ]);
         if ( newKeyIndex1 !== null && newKeyIndex1 > -1 ) { 
             refinerTree.push ( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenKeys); // Recreate first layer of pivots
+            countTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenObjs.map( o => { return o.itemCount; }) );
+            multiTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenObjs.map( o => { return o.multiCount; }) );
 
             //let searchMeta2 =  this.state.searchMeta.length > 2 ? this.state.searchMeta[ 2 ] : null;
             let newKeyIndex2 = this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenKeys.indexOf(newMeta[ 2 ]);
         }
     }
-    console.log('getCurrentRefinerTree: ', refinerTree);
-    return refinerTree;
+
+    result = {
+        refinerTree: refinerTree,
+        countTree: countTree,
+        multiTree: multiTree,
+    };
+
+    console.log('getCurrentRefinerTree: ', result);
+    return result;
 
   }
 
@@ -912,10 +1002,18 @@ public componentDidUpdate(prevProps){
     //if ( searchType === 'meta' && layer !== prevLayer ) {
     if ( searchType === 'meta' ) {
 
-        let refinerTree = this.getCurrentRefinerTree( newMeta );
+        //refinerTree: null,
+        //countTree: null,
+        //multiTree: null,
+
+        let refinerTreeObj = this.getCurrentRefinerTree( newMeta );
+        let refinerTree = refinerTreeObj.refinerTree;
+        let refinerCount = refinerTreeObj.countTree;
+        let refinerMulit = refinerTreeObj.multiTree;
+        let sendCount = refinerCount;
 
         pivotCats.push ( refinerTree[0].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-        cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[0], layer, 0 ));
+        cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[0], sendCount[0], layer, 0, refinerObj ));
 
         if ( newMeta.length === 1 && newMeta[0] === 'All'){  //For some reason this was giving False when it should be true: if ( newMeta === ['All'] ) { }
             //Nothing is needed.
@@ -928,12 +1026,12 @@ public componentDidUpdate(prevProps){
 
             if ( refinerTree.length > 1 ) { 
                 pivotCats.push ( refinerTree[1].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[1], layer, 1));
+                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[1], sendCount[1], layer, 1, refinerObj));
             }
 
             if ( refinerTree.length > 2 ) {
                 pivotCats.push ( refinerTree[2].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[2], layer, 2));
+                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[2], sendCount[2], layer, 2, refinerObj));
             }
         }
     } else {
@@ -947,7 +1045,8 @@ public componentDidUpdate(prevProps){
         pivotCats = [];
         cmdCats = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
-        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, 0 , 0 ) );
+        let countTree: number[] = this.state.refinerObj.childrenObjs.map( o => { return o.itemCount; }) ;
+        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0 , refinerObj) );
     }
 
 
@@ -1064,13 +1163,19 @@ public componentDidUpdate(prevProps){
      * @param layer  - this is the layer that was clicked on?
      * @param refLayer - this is the layer of this particular control
      */
-    private convertRefinersToCMDs( newMeta: string[], refiners: string[], layer: number, refLayer: number ) {
+    private convertRefinersToCMDs( newMeta: string[], refiners: string[], thisCount: number[], layer: number, refLayer: number, refinerObj: IRefiners ) {
         let result = [];
+
+        //Get sum of array of numbers:  https://codeburst.io/javascript-arrays-finding-the-minimum-maximum-sum-average-values-f02f1b0ce332
+        
+        const arrSum = thisCount.reduce((a,b) => a + b, 0);
+
         result.push ({
             name: 'All',
             key: 'All',
             checked: 'All' === newMeta[layer] ? true : false ,
             icon: null,
+            count: arrSum,
         });
 
         let makeRefiners : string[] = [];
@@ -1091,14 +1196,18 @@ public componentDidUpdate(prevProps){
             makeRefiners = refiners.join().split(',');
         }
 
+        let n = 0;
         makeRefiners.map( i => {  
+
             let thisItem : ICMDItem = {
                 name: i,
                 key: i,
                 checked: i === newMeta[layer] ? true : false ,
                 disabled: disabledItems.indexOf( i ) > -1 ? true : false,
                 icon: null,
+                count: thisCount[n],
             };
+            n ++;
             return result.push(thisItem);
 
         });
@@ -1179,6 +1288,7 @@ public componentDidUpdate(prevProps){
         let p = <PivotItem 
             headerText={ pivCat.title }
             itemKey={ pivCat.title }
+            itemCount={ 0 }
             >
             { pivCat.desc }
         </PivotItem>;
@@ -1200,6 +1310,30 @@ public componentDidUpdate(prevProps){
  */
 
     private getPageToggles() {
+
+        let togCounts = {
+            //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
+            label: <span>Counts</span>,
+            key: 'togggleCount',
+            _onChange: this.updateTogggleCount.bind(this),
+            checked: this.state.showCatCounts === true ? true : false,
+            onText: '',
+            offText: '',
+            className: '',
+            styles: '',
+        };
+
+        let togSummary = {
+            //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
+            label: <span>Summary</span>,
+            key: 'togggleStats',
+            _onChange: this.updateTogggleSummary.bind(this),
+            checked: this.state.showSummary === true ? true : false,
+            onText: '',
+            offText: '',
+            className: '',
+            styles: '',
+        };
 
         let togView = {
             //label: <span style={{ color: 'red', fontWeight: 900}}>Rails Off!</span>,
@@ -1225,7 +1359,7 @@ public componentDidUpdate(prevProps){
             styles: '',
         };
 
-        let theseToggles = [togView , togRefinerStyle];
+        let theseToggles = [togCounts, togSummary, togView , togRefinerStyle];
 
         let pageToggles : IContentsToggles = {
             toggles: theseToggles,
@@ -1238,6 +1372,18 @@ public componentDidUpdate(prevProps){
 
         return pageToggles;
 
+    }
+
+    private updateTogggleSummary() {
+        this.setState({
+            showSummary: !this.state.showSummary,
+          });
+    }
+
+    private updateTogggleCount() {
+        this.setState({
+            showCatCounts: !this.state.showCatCounts,
+          });
     }
 
     private updateTogggleView() {

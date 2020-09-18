@@ -8,11 +8,14 @@ import { Checkbox } from 'office-ui-fabric-react/lib/Checkbox';
 import { IContextualMenuItem } from 'office-ui-fabric-react/lib/ContextualMenu';
 import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { mergeStyleSets } from 'office-ui-fabric-react';
+import { IRenderFunction } from 'office-ui-fabric-react/lib/Utilities';
+
 
 //import * as stylesImport from './ResizeGroup.Example.scss';
 //const styles: any = stylesImport;
 
-export const customButtonWithIcon = (props: IButtonProps) => {
+
+  export const customButtonWithIcon = (props: IButtonProps) => {
 
     return (
       <CommandBarButton
@@ -40,7 +43,7 @@ export const customButtonWithIcon = (props: IButtonProps) => {
           ...props.styles,
           root: {backgroundColor: 'white'  ,padding:'10px 20px 10px 10px !important', height: 32, borderColor: 'white', width: 200, margin: '0px !important'},
           textContainer: { fontSize: 16, color: '#00457E' },
-        }}
+        }}       
       />
     );
   };
@@ -73,6 +76,8 @@ export interface ICMDItem {
   checked: boolean;
   icon?: string;
   disabled?: boolean;
+  count: number;
+  data?: number;
 }
 
 function  _functionOnClick(item){
@@ -84,22 +89,28 @@ function  _functionOnClick(item){
     console.log('item', item);
 }
 
-function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: boolean, onClick: any): IOverflowData {
+function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: boolean, showCatCounts: boolean, onClick: any): IOverflowData {
   const dataItems = [];
   let cacheKey = '';
   if ( items ) {
     for (let index = 0; index < items.length; index++) {
+      let countLabel = showCatCounts ? ' (' + items[index].count + ')' : '';
+
+      let ariaLabel = items[index].name + countLabel;
+      items[index].data = items[index].count;
       const item = {
         key: items[index].key,
-        name: items[index].name,
+        name: items[index].name + countLabel,
         icon: items[index].icon ? items[index].icon : null,
         checked: items[index].name === checkedItem ? true : false,
         disabled: items[index].disabled,
-        ariaLabel: items[index].name,
+        ariaLabel: items[index].name + countLabel,
         commandBarButtonAs: items[index].icon ? customButtonWithIcon : customButtonNoIcon,
         onClick: onClick,
+        count: items[index].count,
+        data:  items[index].count,
       };
-  
+      item.ariaLabel = ariaLabel;
       cacheKey = cacheKey + item.key;
       dataItems.push(item);
     }
@@ -128,7 +139,7 @@ export interface IResizeGroupOverflowSetExampleProps {
   checkedItem: string;
   WebpartHeight?:  number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
   WebpartWidth?:   number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
-
+  showCatCounts: boolean;
 }
 
 export interface IResizeGroupOverflowSetExampleState {
@@ -201,7 +212,7 @@ public componentDidUpdate(prevProps){
   public render(): JSX.Element {
     const { numberOfItems, cachingEnabled, buttonsChecked, short, onGrowDataEnabled } = this.state;
     //const dataToRender = generateData(numberOfItems, cachingEnabled, buttonsChecked);
-    const commandsToRender = generateData( this.props.items , this.props.checkedItem, this.props.cachingEnabled, this.props.onClick );
+    const commandsToRender = generateData( this.props.items , this.props.checkedItem, this.props.cachingEnabled, this.props.showCatCounts, this.props.onClick );
 
     return (
       <div className={short ? styles.resizeIsShort : 'notResized'}>
@@ -222,14 +233,20 @@ public componentDidUpdate(prevProps){
                   return (
                     //Wraping button in div to get ID didn't work... makes buttons small
                     //<div id={ item.name.replace(' ','') }><CommandBarButton text={item.name} iconProps={{ iconName: item.icon }} onClick={item.onClick} checked={item.checked} /></div>
-                    <CommandBarButton 
+
+                    //Example of _onRenderText where you could render the count as a smaller font size
+                    //https://github.com/microsoft/fluentui/blob/cc72899b69926f902d68f3164a7845401f1dc700/packages/office-ui-fabric-react/src/components/Button/BaseButton.tsx
+
+                    <CommandBarButton
                       role="menuitem"
-                      text={item.name} 
+                      text={ item.name }
                       ariaLabel={item.name}
-                      iconProps={{ iconName: item.icon }} 
-                      disabled={ item.disabled } 
-                      onClick={ this.props.onClick } 
-                      checked={item.checked} />
+                      iconProps={{ iconName: item.icon }}
+                      disabled={ item.disabled }
+                      onClick={ this.props.onClick }
+                      checked={item.checked }
+                    />
+
 
                   //<div>{  }</div>
                     //<div>{item.name}</div>
@@ -247,6 +264,7 @@ public componentDidUpdate(prevProps){
       </div>
     );
   }
+
 
   /**
    * This was just the settings used in the ResizeGroup sample which was just after the command bar.
