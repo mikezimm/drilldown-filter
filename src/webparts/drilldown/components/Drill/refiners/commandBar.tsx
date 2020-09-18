@@ -8,11 +8,14 @@ import { Checkbox } from 'office-ui-fabric-react/lib/Checkbox';
 import { IContextualMenuItem } from 'office-ui-fabric-react/lib/ContextualMenu';
 import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { mergeStyleSets } from 'office-ui-fabric-react';
+import { IRenderFunction } from 'office-ui-fabric-react/lib/Utilities';
+
 
 //import * as stylesImport from './ResizeGroup.Example.scss';
 //const styles: any = stylesImport;
 
-export const customButtonWithIcon = (props: IButtonProps) => {
+
+  export const customButtonWithIcon = (props: IButtonProps) => {
 
     return (
       <CommandBarButton
@@ -40,7 +43,7 @@ export const customButtonWithIcon = (props: IButtonProps) => {
           ...props.styles,
           root: {backgroundColor: 'white'  ,padding:'10px 20px 10px 10px !important', height: 32, borderColor: 'white', width: 200, margin: '0px !important'},
           textContainer: { fontSize: 16, color: '#00457E' },
-        }}
+        }}       
       />
     );
   };
@@ -74,6 +77,7 @@ export interface ICMDItem {
   icon?: string;
   disabled?: boolean;
   count: number;
+  data?: number;
 }
 
 function  _functionOnClick(item){
@@ -93,6 +97,7 @@ function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: bo
       let countLabel = showCatCounts ? ' (' + items[index].count + ')' : '';
 
       let ariaLabel = items[index].name + countLabel;
+      items[index].data = items[index].count;
       const item = {
         key: items[index].key,
         name: items[index].name + countLabel,
@@ -239,7 +244,7 @@ public componentDidUpdate(prevProps){
                       iconProps={{ iconName: item.icon }}
                       disabled={ item.disabled }
                       onClick={ this.props.onClick }
-                      checked={item.checked}
+                      checked={item.checked }
                     />
 
 
@@ -259,6 +264,7 @@ public componentDidUpdate(prevProps){
       </div>
     );
   }
+
 
   /**
    * This was just the settings used in the ResizeGroup sample which was just after the command bar.
