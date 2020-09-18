@@ -73,6 +73,7 @@ export interface ICMDItem {
   checked: boolean;
   icon?: string;
   disabled?: boolean;
+  count: number;
 }
 
 function  _functionOnClick(item){
@@ -89,17 +90,20 @@ function generateData(items: ICMDItem[], checkedItem: string, cachingEnabled: bo
   let cacheKey = '';
   if ( items ) {
     for (let index = 0; index < items.length; index++) {
+      let ariaLabel = items[index].name + ' count of ' + items[index].count;
       const item = {
         key: items[index].key,
-        name: items[index].name,
+        name: items[index].name + ' (' + items[index].count + ')',
         icon: items[index].icon ? items[index].icon : null,
         checked: items[index].name === checkedItem ? true : false,
         disabled: items[index].disabled,
-        ariaLabel: items[index].name,
+        ariaLabel: items[index].name + ' count of ' + items[index].count,
         commandBarButtonAs: items[index].icon ? customButtonWithIcon : customButtonNoIcon,
         onClick: onClick,
+        count: items[index].count,
+        data:  items[index].count,
       };
-  
+      item.ariaLabel = ariaLabel;
       cacheKey = cacheKey + item.key;
       dataItems.push(item);
     }
@@ -222,14 +226,16 @@ public componentDidUpdate(prevProps){
                   return (
                     //Wraping button in div to get ID didn't work... makes buttons small
                     //<div id={ item.name.replace(' ','') }><CommandBarButton text={item.name} iconProps={{ iconName: item.icon }} onClick={item.onClick} checked={item.checked} /></div>
-                    <CommandBarButton 
+                    <CommandBarButton
                       role="menuitem"
-                      text={item.name} 
+                      text={ item.name }
                       ariaLabel={item.name}
-                      iconProps={{ iconName: item.icon }} 
-                      disabled={ item.disabled } 
-                      onClick={ this.props.onClick } 
-                      checked={item.checked} />
+                      iconProps={{ iconName: item.icon }}
+                      disabled={ item.disabled }
+                      onClick={ this.props.onClick }
+                      checked={item.checked}
+                    />
+
 
                   //<div>{  }</div>
                     //<div>{item.name}</div>

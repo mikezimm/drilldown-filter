@@ -766,6 +766,20 @@ public componentDidUpdate(prevProps){
         return '';
     }
 
+    private findCountOfAriaLabel( item: any ) {
+        let result = '';
+        if ( item.currentTarget && item.currentTarget.ariaLabel && item.currentTarget.ariaLabel.length > 0 ) {
+            let countOf = item.currentTarget.ariaLabel.split(' count of ');
+            if ( countOf.length > 1 ) { 
+                result = countOf[1];
+                console.log('Found count of: ' , countOf[1] );
+            } else {
+                console.log ('Did not find count of...' );
+            }
+        }
+        return result;
+    }
+
     private findMatchtingElementText( item: any ) {
 
         let hasItemKey = item.props && item.props.itemKey ? true : false ;
@@ -805,7 +819,9 @@ public componentDidUpdate(prevProps){
     //This function works great for Pivots, not neccessarily anything with icons.
     public _onSearchForMetaCmd0 = (item): void => {
         //This sends back the correct pivot category which matches the category on the tile.
-        let validText = this.findMatchtingElementText( item);
+        let validText = this.findMatchtingElementText( item );
+        let countOf = this.findCountOfAriaLabel( item );
+        validText = validText.replace(' ('+countOf+')','');
         this.searchForItems( this.state.searchText, [validText], 0, 'meta' );
     }
 
@@ -815,6 +831,8 @@ public componentDidUpdate(prevProps){
 
     public _onSearchForMetaCmd1= (item): void => {
         let validText = this.findMatchtingElementText(item);
+        let countOf = this.findCountOfAriaLabel( item );
+        validText = validText.replace(' ('+countOf+')','');
         this._onSearchForMeta1(validText);
     }
 
@@ -844,6 +862,9 @@ public componentDidUpdate(prevProps){
 
     public _onSearchForMetaCmd2= (item): void => {
         let validText = this.findMatchtingElementText(item);
+        let countOf = this.findCountOfAriaLabel( item );
+        validText = validText.replace(' ('+countOf+')','');
+
         this._onSearchForMeta2(validText);
     }
 
@@ -1111,6 +1132,7 @@ public componentDidUpdate(prevProps){
                 checked: i === newMeta[layer] ? true : false ,
                 disabled: disabledItems.indexOf( i ) > -1 ? true : false,
                 icon: null,
+                count: 666,
             };
             return result.push(thisItem);
 
