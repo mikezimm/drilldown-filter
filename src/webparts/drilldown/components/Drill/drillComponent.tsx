@@ -90,15 +90,16 @@ export interface IMyPivCat {
     title: string;
     desc: string;
     order: number;
+    count: number;
 }
 
 export const pivCats = {
-    all: {title: 'All', desc: '', order: 1},
-    newWebs: {title: 'New' , desc: '', order: 1},
-    recCreate:  {title: 'RecentlyCreated' , desc: '', order: 1},
-    oldCreate: {title: 'Old', desc: '', order: 9 },
-    recUpdate: {title: 'RecentlyUpdated', desc: '', order: 9 },
-    oldUpdate: {title: 'Stale', desc: '', order: 9 },
+    all: {title: 'All', desc: '', order: 1, count: null },
+    newWebs: {title: 'New' , desc: '', order: 1, count: null },
+    recCreate:  {title: 'RecentlyCreated' , desc: '', order: 1, count: null },
+    oldCreate: {title: 'Old', desc: '', order: 9, count: null  },
+    recUpdate: {title: 'RecentlyUpdated', desc: '', order: 9, count: null  },
+    oldUpdate: {title: 'Stale', desc: '', order: 9, count: null  },
 };
 
 
@@ -710,7 +711,9 @@ public componentDidUpdate(prevProps){
         let pivotCats : any = [];
         let cmdCats : any = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
-        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, 0 , 0 ) );
+        let countTree: number[] = refinerObj.childrenObjs.map( o => { return o.itemCount; }) ;
+
+        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0, refinerObj) );
 
         this.setState({
             allItems: allItems,
@@ -738,6 +741,7 @@ public componentDidUpdate(prevProps){
             title: title,
             desc: desc,
             order: order,
+            count: null,
         };
 
         return pivCat;
@@ -922,7 +926,15 @@ public componentDidUpdate(prevProps){
 
   private getCurrentRefinerTree(newMeta: string[] ) {
 
+    let result = {
+        refinerTree: null,
+        countTree: null,
+        multiTree: null,
+    };
+
     let refinerTree: any[] = [];  
+    let countTree: any[] = [];
+    let multiTree: any[] = [];
     // End result would be something like this:
     /**
      * 
@@ -934,21 +946,34 @@ public componentDidUpdate(prevProps){
      * ]
      */
     refinerTree.push ( this.state.refinerObj.childrenKeys);
+    countTree.push( this.state.refinerObj.childrenObjs.map( o => { return o.itemCount; }) );
+    multiTree.push( this.state.refinerObj.childrenObjs.map( o => { return o.multiCount; }) );
 
     let newKeyIndex0 = this.state.refinerObj.childrenKeys.indexOf(newMeta[ 0 ]);
     if ( newKeyIndex0 > -1 ) { 
         refinerTree.push ( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenKeys);
+        countTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs.map( o => { return o.itemCount; }) );
+        multiTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs.map( o => { return o.multiCount; }) );
 
         let newKeyIndex1 = this.state.refinerObj.childrenObjs[newKeyIndex0].childrenKeys.indexOf(newMeta[ 1 ]);
         if ( newKeyIndex1 !== null && newKeyIndex1 > -1 ) { 
             refinerTree.push ( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenKeys); // Recreate first layer of pivots
+            countTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenObjs.map( o => { return o.itemCount; }) );
+            multiTree.push( this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenObjs.map( o => { return o.multiCount; }) );
 
             //let searchMeta2 =  this.state.searchMeta.length > 2 ? this.state.searchMeta[ 2 ] : null;
             let newKeyIndex2 = this.state.refinerObj.childrenObjs[newKeyIndex0].childrenObjs[newKeyIndex1].childrenKeys.indexOf(newMeta[ 2 ]);
         }
     }
-    console.log('getCurrentRefinerTree: ', refinerTree);
-    return refinerTree;
+
+    result = {
+        refinerTree: refinerTree,
+        countTree: countTree,
+        multiTree: multiTree,
+    };
+
+    console.log('getCurrentRefinerTree: ', result);
+    return result;
 
   }
 
@@ -977,10 +1002,18 @@ public componentDidUpdate(prevProps){
     //if ( searchType === 'meta' && layer !== prevLayer ) {
     if ( searchType === 'meta' ) {
 
-        let refinerTree = this.getCurrentRefinerTree( newMeta );
+        //refinerTree: null,
+        //countTree: null,
+        //multiTree: null,
+
+        let refinerTreeObj = this.getCurrentRefinerTree( newMeta );
+        let refinerTree = refinerTreeObj.refinerTree;
+        let refinerCount = refinerTreeObj.countTree;
+        let refinerMulit = refinerTreeObj.multiTree;
+        let sendCount = refinerCount;
 
         pivotCats.push ( refinerTree[0].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-        cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[0], layer, 0 ));
+        cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[0], sendCount[0], layer, 0, refinerObj ));
 
         if ( newMeta.length === 1 && newMeta[0] === 'All'){  //For some reason this was giving False when it should be true: if ( newMeta === ['All'] ) { }
             //Nothing is needed.
@@ -993,12 +1026,12 @@ public componentDidUpdate(prevProps){
 
             if ( refinerTree.length > 1 ) { 
                 pivotCats.push ( refinerTree[1].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[1], layer, 1));
+                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[1], sendCount[1], layer, 1, refinerObj));
             }
 
             if ( refinerTree.length > 2 ) {
                 pivotCats.push ( refinerTree[2].map( r => { return this.createThisPivotCat(r,'',0); })); // Recreate first layer of pivots
-                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[2], layer, 2));
+                cmdCats.push ( this.convertRefinersToCMDs( newMeta, refinerTree[2], sendCount[2], layer, 2, refinerObj));
             }
         }
     } else {
@@ -1012,7 +1045,8 @@ public componentDidUpdate(prevProps){
         pivotCats = [];
         cmdCats = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
-        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, 0 , 0 ) );
+        let countTree: number[] = this.state.refinerObj.childrenObjs.map( o => { return o.itemCount; }) ;
+        cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0 , refinerObj) );
     }
 
 
@@ -1129,13 +1163,19 @@ public componentDidUpdate(prevProps){
      * @param layer  - this is the layer that was clicked on?
      * @param refLayer - this is the layer of this particular control
      */
-    private convertRefinersToCMDs( newMeta: string[], refiners: string[], layer: number, refLayer: number ) {
+    private convertRefinersToCMDs( newMeta: string[], refiners: string[], thisCount: number[], layer: number, refLayer: number, refinerObj: IRefiners ) {
         let result = [];
+
+        //Get sum of array of numbers:  https://codeburst.io/javascript-arrays-finding-the-minimum-maximum-sum-average-values-f02f1b0ce332
+        
+        const arrSum = thisCount.reduce((a,b) => a + b, 0);
+
         result.push ({
             name: 'All',
             key: 'All',
             checked: 'All' === newMeta[layer] ? true : false ,
             icon: null,
+            count: arrSum,
         });
 
         let makeRefiners : string[] = [];
@@ -1156,15 +1196,18 @@ public componentDidUpdate(prevProps){
             makeRefiners = refiners.join().split(',');
         }
 
+        let n = 0;
         makeRefiners.map( i => {  
+
             let thisItem : ICMDItem = {
                 name: i,
                 key: i,
                 checked: i === newMeta[layer] ? true : false ,
                 disabled: disabledItems.indexOf( i ) > -1 ? true : false,
                 icon: null,
-                count: 666,
+                count: thisCount[n],
             };
+            n ++;
             return result.push(thisItem);
 
         });
@@ -1245,6 +1288,7 @@ public componentDidUpdate(prevProps){
         let p = <PivotItem 
             headerText={ pivCat.title }
             itemKey={ pivCat.title }
+            itemCount={ 0 }
             >
             { pivCat.desc }
         </PivotItem>;

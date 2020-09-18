@@ -228,6 +228,10 @@ public componentDidUpdate(prevProps){
                   return (
                     //Wraping button in div to get ID didn't work... makes buttons small
                     //<div id={ item.name.replace(' ','') }><CommandBarButton text={item.name} iconProps={{ iconName: item.icon }} onClick={item.onClick} checked={item.checked} /></div>
+
+                    //Example of _onRenderText where you could render the count as a smaller font size
+                    //https://github.com/microsoft/fluentui/blob/cc72899b69926f902d68f3164a7845401f1dc700/packages/office-ui-fabric-react/src/components/Button/BaseButton.tsx
+
                     <CommandBarButton
                       role="menuitem"
                       text={ item.name }
