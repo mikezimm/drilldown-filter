@@ -31,7 +31,7 @@ import { createAdvancedContentChoices } from '../fields/choiceFieldBuilder';
 
 import { IContentsToggles, makeToggles } from '../fields/toggleFieldBuilder';
 
-import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef } from '../IReUsableInterfaces';
+import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef, IRefinerStat } from '../IReUsableInterfaces';
 
 import { createLink } from '../HelpInfo/AllLinks';
 
@@ -84,7 +84,7 @@ export interface IDrillWeb extends Partial<IPickedWebBasic> {
     refiners: string[]; //String of Keys representing the static name of the column used for drill downs
     emptyRefiner: string;
     refinerRules: IRefinerRules[][];
-    refinerStats: [];
+    refinerStats: IRefinerStat[];
   }
 
 export interface IMyPivCat {

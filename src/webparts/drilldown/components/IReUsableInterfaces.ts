@@ -10,18 +10,19 @@ export const RefinerStatTypes = ['sum' , 'avg' , 'max' , 'min' , 'daysAgo' , 'mo
 export type IRefinerChartType = 'pareto' | 'stackedColumn' | '' | '' | '' | '' | '' ;
 export const RefinerChartTypes = ['pareto' , 'stackedColumn' ]; // , '' , '' , '' , '' , '' , ''];
 
-export interface IRefinerCalc {
+export interface IRefinerStat {
 
   primaryField: string;
   secondField?: string;
   title: string;
-  calc: IRefinerStatType;
+  stat: IRefinerStatType;
   chartType: IRefinerChartType;
+  eval?: string;
 
 }
 
-export interface IRefinerCalcs {
-  calcs: IRefinerCalc[];
+export interface IRefinerStats {
+  stats: IRefinerStat[];
 }
 
 export type RefineRuleValues = 
@@ -74,16 +75,16 @@ export interface IRefiners {
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs: IRefinerLayer[];
-  calc0?: number;
-  calc1?: number;
-  calc2?: number;
-  calc3?: number;
-  calc4?: number;
-  calc5?: number;
-  calc6?: number;
-  calc7?: number;
-  calc8?: number;
-  calc9?: number;
+  stat0?: number;
+  stat1?: number;
+  stat2?: number;
+  stat3?: number;
+  stat4?: number;
+  stat5?: number;
+  stat6?: number;
+  stat7?: number;
+  stat8?: number;
+  stat9?: number;
 }
 
 export interface IRefinerLayer {
@@ -92,16 +93,16 @@ export interface IRefinerLayer {
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs?: IRefinerLayer[];
-  calc0?: number;
-  calc1?: number;
-  calc2?: number;
-  calc3?: number;
-  calc4?: number;
-  calc5?: number;
-  calc6?: number;
-  calc7?: number;
-  calc8?: number;
-  calc9?: number;
+  stat0?: number;
+  stat1?: number;
+  stat2?: number;
+  stat3?: number;
+  stat4?: number;
+  stat5?: number;
+  stat6?: number;
+  stat7?: number;
+  stat8?: number;
+  stat9?: number;
 }
 
 export interface IPickedWebBasic {
