@@ -4,6 +4,21 @@ export interface IRefinerRules {
   rules: RefineRuleValues[];
 }
 
+export type IRefinerCalcType = 'sum' | 'avg' | 'max' | 'min' | 'daysAgo' | 'monthsAgo' | '' | 'eval';
+
+export interface IRefinerCalc {
+
+  primaryField: string;
+  secondField?: string;
+  title: string;
+  calc: IRefinerCalcType;
+
+}
+
+export interface IRefinerCalcs {
+  calcs: IRefinerCalc[];
+}
+
 export type RefineRuleValues = 
   'parseBySemiColons' | 'parseByCommas' | 'groupBy10s' |  'groupBy100s' |  'groupBy1000s' |  'groupByMillions' | 
   'isDate' | 'groupByDays' | 'groupByDaysDDD' | 'groupByWeeks' |  'groupByMonthsMMM' |    'groupByMonthsYYMM' |'groupByYears' | 'groupByDayOfWeek' |  'groupByDateBuckets' |
@@ -54,6 +69,16 @@ export interface IRefiners {
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs: IRefinerLayer[];
+  calc0?: number;
+  calc1?: number;
+  calc2?: number;
+  calc3?: number;
+  calc4?: number;
+  calc5?: number;
+  calc6?: number;
+  calc7?: number;
+  calc8?: number;
+  calc9?: number;
 }
 
 export interface IRefinerLayer {
@@ -62,6 +87,16 @@ export interface IRefinerLayer {
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs?: IRefinerLayer[];
+  calc0?: number;
+  calc1?: number;
+  calc2?: number;
+  calc3?: number;
+  calc4?: number;
+  calc5?: number;
+  calc6?: number;
+  calc7?: number;
+  calc8?: number;
+  calc9?: number;
 }
 
 export interface IPickedWebBasic {
