@@ -4,14 +4,19 @@ export interface IRefinerRules {
   rules: RefineRuleValues[];
 }
 
-export type IRefinerCalcType = 'sum' | 'avg' | 'max' | 'min' | 'daysAgo' | 'monthsAgo' | '' | 'eval';
+export type IRefinerStatType = 'sum' | 'avg' | 'max' | 'min' | 'daysAgo' | 'monthsAgo' | 'demo' | 'eval';
+export const RefinerStatTypes = ['sum' , 'avg' , 'max' , 'min' , 'daysAgo' , 'monthsAgo' , 'eval' ]; // , ''];
+
+export type IRefinerChartType = 'pareto' | 'stackedColumn' | '' | '' | '' | '' | '' ;
+export const RefinerChartTypes = ['pareto' , 'stackedColumn' ]; // , '' , '' , '' , '' , '' , ''];
 
 export interface IRefinerCalc {
 
   primaryField: string;
   secondField?: string;
   title: string;
-  calc: IRefinerCalcType;
+  calc: IRefinerStatType;
+  chartType: IRefinerChartType;
 
 }
 

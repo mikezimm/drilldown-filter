@@ -83,7 +83,8 @@ export interface IDrillWeb extends Partial<IPickedWebBasic> {
     webURL?: string;
     refiners: string[]; //String of Keys representing the static name of the column used for drill downs
     emptyRefiner: string;
-    refinerRules: IRefinerRules[][]; 
+    refinerRules: IRefinerRules[][];
+    refinerStats: [];
   }
 
 export interface IMyPivCat {
@@ -186,6 +187,7 @@ export interface IDrillDownProps {
     progress: IMyProgress;
     
     rules: string;
+    stats: string;
 
     WebpartHeight?:  number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
     WebpartWidth?:   number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
@@ -298,7 +300,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             let thisField = f;
             let minWidth = thisField.minWidth ? thisField.minWidth : avgWidth;
-            let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;        
+            let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;
             if ( thisField.minWidth === undefined ) { thisField.minWidth = minWidth; }
             if ( thisField.maxWidth === undefined ) { thisField.maxWidth = maxWidth; }
             if ( thisField.isResizable === undefined ) { thisField.isResizable = true; }
@@ -347,13 +349,28 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         try {
             emptyRules = JSON.parse(rules);
         } catch(e) {
+            alert('createEmptyRefinerRules: ' + e);
             emptyRules = undefined;
         }
 
         return emptyRules;
     }
 
-    private createDrillList(webURL: string, name: string, isLibrary: boolean, refiners: string[], rules: string, title: string = null) {
+
+    private createRefinerRuleCalcs( calcs: string ) {
+        let theCalcs : any = null;
+        try {
+            calcs = calcs.replace(/\\\"/g,'"').replace(/\\'"/g,"'"); //Replace any cases where I copied the hashed characters from JSON file directly.
+            theCalcs = JSON.parse(calcs);
+        } catch(e) {
+            alert('createRefinerRuleCalcs: ' + e);
+            theCalcs = [];
+        }
+
+        return theCalcs;
+    }
+
+    private createDrillList(webURL: string, name: string, isLibrary: boolean, refiners: string[], rules: string, stats: string, title: string = null) {
 
         let list: IDrillList = {
             title: title,
@@ -364,7 +381,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             refiners: refiners,
             emptyRefiner: 'Unknown',
             refinerRules: this.createEmptyRefinerRules( rules ),
-            
+            refinerStats: this.createRefinerRuleCalcs( stats ),
         };
 
         return list;
@@ -376,7 +393,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         /**
          * This is copied later in code when you have to call the data in case something changed.
          */
-        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, '');
+        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, this.props.stats, '');
         let errMessage = drillList.refinerRules === undefined ? 'Invalid Rule set: ' +  this.props.rules : '';
         if ( drillList.refinerRules === undefined ) { drillList.refinerRules = [[],[],[]] ; } 
 
@@ -697,7 +714,7 @@ public componentDidUpdate(prevProps){
         /**
          * This is copied from constructor when you have to call the data in case something changed.
          */
-        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, '');
+        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, this.props.stats, '');
         let errMessage = drillList.refinerRules === undefined ? 'Invalid Rule set: ' +  this.props.rules : '';
         if ( drillList.refinerRules === undefined ) { drillList.refinerRules = [[],[],[]] ; } 
 
