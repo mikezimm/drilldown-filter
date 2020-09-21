@@ -234,7 +234,7 @@ export interface ICompareResult {
  }
 
  
-// Copied from WPDef component
+// 2020-09-21:  Updated from drilldown-filter webpart
 export function addItemToArrayIfItDoesNotExist (arr : string[], item: string ) {
     if ( item === undefined ) { 
         console.log('addItemToArrayIfItDoesNotExist found undefined!') ;
