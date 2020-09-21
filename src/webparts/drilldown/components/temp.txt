@@ -78,16 +78,6 @@ export interface IItemRefiners {
   stat7?: number;
   stat8?: number;
   stat9?: number;
-  stat0Count?: number;
-  stat1Count?: number;
-  stat2Count?: number;
-  stat3Count?: number;
-  stat4Count?: number;
-  stat5Count?: number;
-  stat6Count?: number;
-  stat7Count?: number;
-  stat8Count?: number;
-  stat9Count?: number;
 }
 
 export interface IRefiners {
@@ -105,16 +95,6 @@ export interface IRefiners {
   stat7?: number;
   stat8?: number;
   stat9?: number;
-  stat0Count?: number;
-  stat1Count?: number;
-  stat2Count?: number;
-  stat3Count?: number;
-  stat4Count?: number;
-  stat5Count?: number;
-  stat6Count?: number;
-  stat7Count?: number;
-  stat8Count?: number;
-  stat9Count?: number;
 }
 
 export interface IRefinerLayer {
@@ -133,16 +113,6 @@ export interface IRefinerLayer {
   stat7?: number;
   stat8?: number;
   stat9?: number;
-  stat0Count?: number;
-  stat1Count?: number;
-  stat2Count?: number;
-  stat3Count?: number;
-  stat4Count?: number;
-  stat5Count?: number;
-  stat6Count?: number;
-  stat7Count?: number;
-  stat8Count?: number;
-  stat9Count?: number;
 }
 
 export interface IPickedWebBasic {

@@ -125,6 +125,8 @@ export interface IDrillItemInfo extends Partial<any>{
 
     refiners: IItemRefiners; //String of Keys representing the static name of the column used for drill downs
 
+    Id: any;
+
 }
 
 export type IViewType = 'React' | 'MZ' | 'Other' ;
@@ -732,6 +734,9 @@ public componentDidUpdate(prevProps){
 
         cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0, refinerObj) );
 
+        console.log('addTheseItemsToState refinerObj: ', refinerObj);
+        console.log('addTheseItemsToState allItems: ', allItems);
+
         this.setState({
             allItems: allItems,
             searchedItems: allItems, //newFilteredItems,  //Replaced with allItems to update when props change.
@@ -1058,7 +1063,7 @@ public componentDidUpdate(prevProps){
     }
 
     if ( searchType === 'text' && this.props.updateRefinersOnTextSearch === true ) {
-        refinerObj = buildRefinersObject(newFilteredItems);
+        refinerObj = buildRefinersObject(newFilteredItems, this.state.drillList );
         pivotCats = [];
         cmdCats = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
