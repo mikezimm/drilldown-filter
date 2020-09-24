@@ -127,6 +127,7 @@ public constructor(props:IInfoAboutMeProps){
                 {/* 3 files to update version number:  package-solution.json, package-lock.json, package.json*/}
                 <table className={styles.infoTable}>
                     <tr><th>Date</th><th>Version</th><th>Focus</th><th>Notes</th></tr>
+                    <tr><td>2020-09-15</td><td>{'1.0.2.0'}</td><td>Add Data and Charts</td><td></td></tr>
                     <tr><td>2020-09-15</td><td>{'1.0.1.0'}</td><td>Add React based list</td><td>With sorting, columnwidths, grouping and details button</td></tr>
                     <tr><td>2020-09-14</td><td>{'1.0.0.1'}</td><td>Baseline Drilldown from Generic Project</td><td>With basic Pivot and Command bar options</td></tr>
                 </table>

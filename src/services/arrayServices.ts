@@ -271,6 +271,8 @@ export function sortKeysByOtherKey( obj: any, sortKey: string, order: 'asc' | 'd
       obj[key] = otherKeyArrays[key] ;
     }); 
   
+    obj[sortKey] = sortCopy;
+
     return obj;
   
   }
