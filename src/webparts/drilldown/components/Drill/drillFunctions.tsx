@@ -47,7 +47,7 @@ import { IRefinerStat } from '../../components/IReUsableInterfaces';
 
 export async function getAllItems( drillList: IDrillList, addTheseItemsToState: any, setProgress: any, markComplete: any ): Promise<IDrillItemInfo[]>{
 
-    let allRefiners : IRefiners = null;
+    let allRefiners : IRefinerLayer = null;
 
     //lists.getById(listGUID).webs.orderBy("Title", true).get().then(function(result) {
     //let allItems : IDrillItemInfo[] = await sp.web.webs.get();
@@ -112,7 +112,7 @@ export async function getAllItems( drillList: IDrillList, addTheseItemsToState: 
 //                                                                                                   
 //    
 
-function sortRefinerObject ( allRefiners: IRefiners, drillList: IDrillList ) {
+function sortRefinerObject ( allRefiners: IRefinerLayer, drillList: IDrillList ) {
 
     //webPartDefs.sort((a, b) => (a.alias > b.alias) ? 1 : -1);
 
@@ -176,14 +176,89 @@ function createNewRefinerLayer( thisKey: string, drillList: IDrillList ) {
     return newRefiner;
 }
 
-function createNewRefinerLayerStats( thisKey: string, drillList: IDrillList ) {
+function buildRefinerLayer ( level: number, refinersParent : IRefinerLayer , i: IDrillItemInfo, drillList: IDrillList ) {
+
+    if ( level > 2 ) {
+        return refinersParent;
+
+    } else {
+
+        //Do just level 1
+        let thisRefinerValuesLevX = i.refinersParent['lev' + level];
+        //Go through each array of refinersParent... 
+        for ( let r0 in thisRefinerValuesLevX ) { //Go through all list items
+
+            let thisRefinerX = thisRefinerValuesLevX[r0];
+            let topKeyX = refinersParent.childrenKeys.indexOf( thisRefinerX );
+
+            if ( topKeyX < 0 ) { //Add to topKeys and create keys child object
+                refinersParent.childrenKeys.push( thisRefinerX );
+                refinersParent.childrenObjs.push( createNewRefinerLayer ( thisRefinerX, drillList ) );
+                refinersParent.childrenCounts.push( 0 );
+                refinersParent.childrenMultiCounts.push( 0 );
+                topKeyX = refinersParent.childrenKeys.length -1;
+                //Add empty object in array for later use
+                for ( let i2 in drillList.refinerStats ) {
+                    refinersParent['stat' + i2].push(null);
+                    refinersParent['stat' + i2 + 'Count'].push(0);
+                }
+            }
+
+            refinersParent.multiCount ++;
+            refinersParent.childrenCounts[topKeyX] ++;
+            refinersParent.childrenMultiCounts[topKeyX] ++;
+            if ( r0 == '0') { refinersParent.itemCount ++; }
+
+            /**
+             * This loop gets the totals used for stats for each stat based on all items with that refiner.
+             * By design it ignores any items of EntryType = 'start' because the entry that counts is the one that has time.
+             * Maybe I should just ignore any with zero as time.
+             */
+            if ( i.EntryType !== 'start') {
+                for ( let i2 in drillList.refinerStats ) {
+                    let thisStat = drillList.refinerStats[i2].stat;
+                    let thisValue = i.refinersParent['stat' + i2];
+                    let currentRefinerValue = refinersParent['stat' + i2][topKeyX];
+
+                    if ( thisStat === 'sum' || thisStat === 'avg' || thisStat === 'daysAgo' || thisStat === 'monthsAgo' ) {
+                        //Add numbers up here and divide by total count later
+                        refinersParent['stat' + i2][topKeyX] += thisValue;
+                        refinersParent['stat' + i2 + 'Count'][topKeyX] ++;
+
+                    } else if ( thisStat === 'max' ) {
+                        if ( thisValue > currentRefinerValue || currentRefinerValue === null ) {
+                            //Add numbers up here and divide by total count later
+                            refinersParent['stat' + i2][topKeyX] = thisValue;
+                            refinersParent['stat' + i2 + 'Count'][topKeyX] ++;
+                        } else {
+                            console.log( 'no update: ' + thisValue + ' is NOT LARGER than ' +currentRefinerValue );
+                        }
+
+                    } else if ( thisStat === 'min' ) {
+                        if ( thisValue < currentRefinerValue || currentRefinerValue === null ) {
+                            //Add numbers up here and divide by total count later
+                            refinersParent['stat' + i2][topKeyX] = thisValue;
+                            refinersParent['stat' + i2 + 'Count'][topKeyX] ++;
+                        } else {
+                            console.log( 'no update: ' + thisValue + ' is NOT LESS than ' +currentRefinerValue );
+                        }
+
+                    } else { console.log('Not sure what to do with this stat: ', thisStat, i.refinersParent ) ; }
+                }
+            }
+            refinersParent = buildRefinerLayer ( level ++, refinersParent.childrenObjs[topKeyX] , i, drillList );
+        }
+
+    }
+
+    return refinersParent;
 
 }
 
-
 export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrillList ) {
 
-    let refiners : IRefiners = {
+    let refiners : IRefinerLayer = {
+        thisKey: '',
         multiCount: 0,
         itemCount: 0,
         childrenKeys: [],
@@ -204,19 +279,20 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
     //Go through all items
     for ( let i of items ) { //Go through all list items
         if ( i.refiners ) { //If Item has refiners (all should)
+            refiners = buildRefinerLayer ( 0 , refiners , i, drillList );
+        
+        } else {
+
+            alert('Oops... this loop should not have been run... Look for drillFunctions.tsx > buildRefinersObject function.')
 
             //Do just level 1
             let thisRefinerValuesLev0 = i.refiners['lev' + 0];
-
-            //  Check if an array contains any element of another array in JavaScript
-            //  const found = arr1.some(r=> arr2.indexOf(r) >= 0)     https://stackoverflow.com/a/39893636  
-
             //Go through each array of refiners... 
             for ( let r0 in thisRefinerValuesLev0 ) { //Go through all list items
 
                 let thisRefiner0 = thisRefinerValuesLev0[r0];
                 let topKey0 = refiners.childrenKeys.indexOf( thisRefiner0 );
-
+                
                 if ( topKey0 < 0 ) { //Add to topKeys and create keys child object
                     refiners.childrenKeys.push( thisRefiner0 );
                     refiners.childrenObjs.push( createNewRefinerLayer ( thisRefiner0, drillList ) );
@@ -259,7 +335,6 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
                             } else {
                                 console.log( 'no update: ' + thisValue + ' is NOT LARGER than ' +currentRefinerValue );
                             }
-
 
                         } else if ( thisStat === 'min' ) {
                             if ( thisValue < currentRefinerValue || currentRefinerValue === null ) {

@@ -258,7 +258,7 @@ export interface IDrillDownState {
     WebpartHeight?:  number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
     WebpartWidth?:   number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
 
-    refinerObj: IRefiners;
+    refinerObj: IRefinerLayer;
     showDisabled?: boolean;
 
     pivotCats: IMyPivCat[][];
@@ -435,7 +435,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             progress: null,
 
-            refinerObj: {childrenKeys: this.props.refiners, childrenObjs: [], childrenCounts: [], childrenMultiCounts: [] , multiCount: 0, itemCount: 0 },
+            refinerObj: {thisKey: '', childrenKeys: this.props.refiners, childrenObjs: [], childrenCounts: [], childrenMultiCounts: [] , multiCount: 0, itemCount: 0 },
             showDisabled: this.props.showDisabled ? this.props.showDisabled : false,
 
             pivotCats: [],
@@ -848,7 +848,7 @@ console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts 
 
     }
 
-    private addTheseItemsToState( drillList: IDrillList, allItems , errMessage : string, refinerObj: IRefiners ) {
+    private addTheseItemsToState( drillList: IDrillList, allItems , errMessage : string, refinerObj: IRefinerLayer ) {
 
         //let newFilteredItems : IDrillItemInfo[] = this.getNewFilteredItems( '', this.state.searchMeta, allItems, 0 );
         let pivotCats : any = [];
@@ -1325,7 +1325,7 @@ console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts 
      * @param layer  - this is the layer that was clicked on?
      * @param refLayer - this is the layer of this particular control
      */
-    private convertRefinersToCMDs( newMeta: string[], refiners: string[], thisCount: number[], layer: number, refLayer: number, refinerObj: IRefiners ) {
+    private convertRefinersToCMDs( newMeta: string[], refiners: string[], thisCount: number[], layer: number, refLayer: number, refinerObj: IRefinerLayer ) {
         let result = [];
 
         //Get sum of array of numbers:  https://codeburst.io/javascript-arrays-finding-the-minimum-maximum-sum-average-values-f02f1b0ce332

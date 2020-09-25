@@ -91,6 +91,8 @@ export interface IItemRefiners {
 }
 
 export interface IRefiners {
+
+  thisKey: string;
   multiCount: number; // Count when counting multi-value fields each time
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
