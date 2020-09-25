@@ -176,7 +176,9 @@ function createNewRefinerLayer( thisKey: string, drillList: IDrillList ) {
     return newRefiner;
 }
 
-function buildRefinerLayer ( level: number, refinersParent : IRefinerLayer , i: IDrillItemInfo, drillList: IDrillList ) {
+function buildRefinerLayerDidNotWork ( level: number, refinersParent : IRefinerLayer , i: IDrillItemInfo, drillList: IDrillList ) {
+
+    let result: IRefinerLayer = null;
 
     if ( level > 2 ) {
         return refinersParent;
@@ -184,7 +186,7 @@ function buildRefinerLayer ( level: number, refinersParent : IRefinerLayer , i: 
     } else {
 
         //Do just level 1
-        let thisRefinerValuesLevX = i.refinersParent['lev' + level];
+        let thisRefinerValuesLevX = i.refiners['lev' + level];
         //Go through each array of refinersParent... 
         for ( let r0 in thisRefinerValuesLevX ) { //Go through all list items
 
@@ -217,7 +219,7 @@ function buildRefinerLayer ( level: number, refinersParent : IRefinerLayer , i: 
             if ( i.EntryType !== 'start') {
                 for ( let i2 in drillList.refinerStats ) {
                     let thisStat = drillList.refinerStats[i2].stat;
-                    let thisValue = i.refinersParent['stat' + i2];
+                    let thisValue = i.refiners['stat' + i2];
                     let currentRefinerValue = refinersParent['stat' + i2][topKeyX];
 
                     if ( thisStat === 'sum' || thisStat === 'avg' || thisStat === 'daysAgo' || thisStat === 'monthsAgo' ) {
@@ -243,15 +245,42 @@ function buildRefinerLayer ( level: number, refinersParent : IRefinerLayer , i: 
                             console.log( 'no update: ' + thisValue + ' is NOT LESS than ' +currentRefinerValue );
                         }
 
-                    } else { console.log('Not sure what to do with this stat: ', thisStat, i.refinersParent ) ; }
+                    } else { console.log('Not sure what to do with this stat: ', thisStat, i.refiners ) ; }
                 }
             }
-            refinersParent = buildRefinerLayer ( level ++, refinersParent.childrenObjs[topKeyX] , i, drillList );
+            level ++;
+            if ( level < 3 ) {
+                result = buildRefinerLayerDidNotWork ( level, refinersParent.childrenObjs[topKeyX] , i, drillList );
+            }
+        }
+    }
+
+    return result;
+
+}
+
+export function updateThisRefiner( r0: any, topKeyZ: number,  thisRefiner0: any, refiners:IRefinerLayer, drillList: IDrillList ) {
+
+    if ( topKeyZ < 0 ) { //Add to topKeys and create keys child object
+        refiners.childrenKeys.push( thisRefiner0 );
+        refiners.childrenObjs.push( createNewRefinerLayer ( thisRefiner0, drillList ) );
+        refiners.childrenCounts.push( 0 );
+        refiners.childrenMultiCounts.push( 0 );
+        topKeyZ = refiners.childrenKeys.length -1;
+        //Add empty object in array for later use
+        for ( let i2 in drillList.refinerStats ) {
+            refiners['stat' + i2].push(null);
+            refiners['stat' + i2 + 'Count'].push(0);
         }
 
     }
+    refiners.multiCount ++;
+    refiners.childrenCounts[topKeyZ] ++;
+    refiners.childrenMultiCounts[topKeyZ] ++;
+    if ( r0 == '0') { refiners.itemCount ++; }
 
-    return refinersParent;
+    return refiners;
+
 
 }
 
@@ -279,11 +308,6 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
     //Go through all items
     for ( let i of items ) { //Go through all list items
         if ( i.refiners ) { //If Item has refiners (all should)
-            refiners = buildRefinerLayer ( 0 , refiners , i, drillList );
-        
-        } else {
-
-            alert('Oops... this loop should not have been run... Look for drillFunctions.tsx > buildRefinersObject function.')
 
             //Do just level 1
             let thisRefinerValuesLev0 = i.refiners['lev' + 0];
@@ -291,6 +315,7 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
             for ( let r0 in thisRefinerValuesLev0 ) { //Go through all list items
 
                 let thisRefiner0 = thisRefinerValuesLev0[r0];
+
                 let topKey0 = refiners.childrenKeys.indexOf( thisRefiner0 );
                 
                 if ( topKey0 < 0 ) { //Add to topKeys and create keys child object
@@ -362,7 +387,7 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
 
                 //Go through each array of refiners... 
                 for ( let r1 in thisRefinerValuesLev1 ) { //Go through all list items
-
+   
                     let thisRefiner1 = thisRefinerValuesLev1[r1];
                     let refiners1 = refiners.childrenObjs[topKey0];
                     let topKey1 = refiners1.childrenKeys.indexOf( thisRefiner1 );
