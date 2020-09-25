@@ -123,9 +123,9 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
 
     constructor(props: IReactListItemsProps) {
         super(props);
-        console.log( 'constructor props: ', this.props, );
+        console.log( 'listView PROPS: ', this.props, );
         let parentListFieldTitles = this.props.parentListFieldTitles !== undefined && this.props.parentListFieldTitles !== null ? JSON.parse(this.props.parentListFieldTitles) : '';
-        console.log( 'parentListFieldTitles', parentListFieldTitles );
+ //       console.log( 'parentListFieldTitles', parentListFieldTitles );
 
         let viewFields : IViewField[] = [];
         if ( this.props.viewFields.length > 0 ) { 

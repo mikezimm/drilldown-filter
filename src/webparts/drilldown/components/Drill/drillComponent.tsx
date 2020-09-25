@@ -705,9 +705,6 @@ public componentDidUpdate(prevProps){
                 let summary = null;
                 if ( this.state.showSummary === true ) {
                     let labels = this.state.refinerObj.childrenKeys ;
-                    console.log('1 Creating Chart data: ',this.state.refinerObj.childrenKeys );
-                    console.log('1 Creating Chart data: ',this.state.refinerObj.childrenCounts );
-                    console.log('1 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts );
 
                     //let counts = JSON.parse(JSON.stringify(this.state.refinerObj.childrenMultiCounts));
                     let counts = this.state.refinerObj.childrenMultiCounts;
@@ -732,9 +729,6 @@ public componentDidUpdate(prevProps){
                         chartData = { [chartData] }
                     ></Cssreactbarchart>;
 
-                    console.log('3 Creating Chart data: ',this.state.refinerObj.childrenKeys );
-                    console.log('3 Creating Chart data: ',this.state.refinerObj.childrenCounts );
-                    console.log('3 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts );
                 }
 
 
@@ -813,10 +807,6 @@ public componentDidUpdate(prevProps){
  *                                                                 
  */
 
-console.log('4 Creating Chart data: ',this.state.refinerObj.childrenKeys );
-console.log('4 Creating Chart data: ',this.state.refinerObj.childrenCounts );
-console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts );
-
             return (
                 <div className={ styles.contents }>
                 <div className={ styles.container }>
@@ -858,6 +848,7 @@ console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts 
 
         cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0, refinerObj) );
 
+        console.log('addTheseItemsToState: refinerObj',refinerObj );
         console.log('addTheseItemsToState: childrenKeys',refinerObj.childrenKeys );
         console.log('addTheseItemsToState: childrenCounts',refinerObj.childrenCounts );
         console.log('addTheseItemsToState: childrenMultiCounts',refinerObj.childrenMultiCounts );
@@ -1115,10 +1106,6 @@ console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts 
         }
     }
 
-    console.log('getCurrentRefinerTree: ',refinerTree );
-    console.log('getCurrentRefinerTree: ',countTree );
-    console.log('getCurrentRefinerTree: ',multiTree );
-
     result = {
         refinerTree: refinerTree,
         countTree: countTree,
@@ -1145,10 +1132,6 @@ console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts 
     let thisMetaString = JSON.stringify( newMeta );
     let metaChanged = prevMetaString === thisMetaString ? false : true;
     let refinerObj = this.state.refinerObj;
-
-    console.log('B searchForItems: childrenKeys',refinerObj.childrenKeys );
-    console.log('B searchForItems: childrenCounts',refinerObj.childrenCounts );
-    console.log('B searchForItems: childrenMultiCounts',refinerObj.childrenMultiCounts );
 
     /**
      * example of newMeta:
@@ -1209,10 +1192,6 @@ console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts 
 
 
     searchCount = newFilteredItems.length;
-
-    console.log('A searchForItems: childrenKeys',refinerObj.childrenKeys );
-    console.log('A searchForItems: childrenCounts',refinerObj.childrenCounts );
-    console.log('A searchForItems: childrenMultiCounts',refinerObj.childrenMultiCounts );
 
     this.setState({
       searchedItems: newFilteredItems,
@@ -1373,10 +1352,6 @@ console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts 
             return result.push(thisItem);
 
         });
-
-        console.log('convertRefinersToCMDs: childrenKeys',refinerObj.childrenKeys );
-        console.log('convertRefinersToCMDs: childrenCounts',refinerObj.childrenCounts );
-        console.log('convertRefinersToCMDs: childrenMultiCounts',refinerObj.childrenMultiCounts );
 
         return result;
     }

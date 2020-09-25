@@ -92,11 +92,11 @@ export async function getAllItems( drillList: IDrillList, addTheseItemsToState: 
         //console.log(i);
     //}
 
-    console.log('Pre-Sort: getAllItems', allRefiners);
+//    console.log('Pre-Sort: getAllItems', allRefiners);
 
     allRefiners = sortRefinerObject(allRefiners, drillList);
 
-    console.log('Post-Sort: getAllItems', allRefiners);
+//    console.log('Post-Sort: getAllItems', allRefiners);
 
     addTheseItemsToState(drillList, allItems, errMessage, allRefiners );
     return allItems;
@@ -135,7 +135,7 @@ function sortRefinerLayer ( allRefiners: IRefinerLayer[], drillList: IDrillList 
     for ( let r in allRefiners ) { //Go through all list items
         //allRefiners[r].childrenKeys.sort();
         allRefiners[r].childrenObjs.sort((a, b) => (a.thisKey > b.thisKey) ? 1 : -1);
-        let statsToSort : string[] = [];
+        let statsToSort : string[] = ['childrenCounts','childrenMultiCounts'];
         for ( let i in drillList.refinerStats ) {
             statsToSort.push('stat' + i);
             statsToSort.push('stat' + i + 'Count');
@@ -259,6 +259,47 @@ function buildRefinerLayerDidNotWork ( level: number, refinersParent : IRefinerL
 
 }
 
+export function updateRefinerStats( i: IDrillItemInfo , topKeyZ: number,  refiners:IRefinerLayer, drillList: IDrillList ) {
+
+    if ( i.EntryType !== 'start') {
+        for ( let i2 in drillList.refinerStats ) {
+            let thisStat = drillList.refinerStats[i2].stat;
+            let thisValue = i.refiners['stat' + i2];
+            let currentRefinerValue = refiners['stat' + i2][topKeyZ];
+
+            if ( thisStat === 'sum' || thisStat === 'avg' || thisStat === 'daysAgo' || thisStat === 'monthsAgo' ) {
+                //Add numbers up here and divide by total count later
+                refiners['stat' + i2][topKeyZ] += thisValue;
+                refiners['stat' + i2 + 'Count'][topKeyZ] ++;
+
+            } else if ( thisStat === 'max' ) {
+                if ( thisValue > currentRefinerValue || currentRefinerValue === null ) {
+                    //Add numbers up here and divide by total count later
+                    refiners['stat' + i2][topKeyZ] = thisValue;
+                    refiners['stat' + i2 + 'Count'][topKeyZ] ++;
+                } else {
+                    console.log( 'no update: ' + thisValue + ' is NOT LARGER than ' +currentRefinerValue );
+                }
+
+            } else if ( thisStat === 'min' ) {
+                if ( thisValue < currentRefinerValue || currentRefinerValue === null ) {
+                    //Add numbers up here and divide by total count later
+                    refiners['stat' + i2][topKeyZ] = thisValue;
+                    refiners['stat' + i2 + 'Count'][topKeyZ] ++;
+                } else {
+                    console.log( 'no update: ' + thisValue + ' is NOT LESS than ' +currentRefinerValue );
+                }
+
+
+            } else { console.log('Not sure what to do with this stat: ', thisStat, i.refiners ) ; }
+
+        }
+    }
+
+    return refiners;
+
+}
+
 export function updateThisRefiner( r0: any, topKeyZ: number,  thisRefiner0: any, refiners:IRefinerLayer, drillList: IDrillList ) {
 
     if ( topKeyZ < 0 ) { //Add to topKeys and create keys child object
@@ -315,76 +356,14 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
             for ( let r0 in thisRefinerValuesLev0 ) { //Go through all list items
 
                 let thisRefiner0 = thisRefinerValuesLev0[r0];
-
                 let topKey0 = refiners.childrenKeys.indexOf( thisRefiner0 );
                 
-                if ( topKey0 < 0 ) { //Add to topKeys and create keys child object
-                    refiners.childrenKeys.push( thisRefiner0 );
-                    refiners.childrenObjs.push( createNewRefinerLayer ( thisRefiner0, drillList ) );
-                    refiners.childrenCounts.push( 0 );
-                    refiners.childrenMultiCounts.push( 0 );
-                    topKey0 = refiners.childrenKeys.length -1;
-                    //Add empty object in array for later use
-                    for ( let i2 in drillList.refinerStats ) {
-                        refiners['stat' + i2].push(null);
-                        refiners['stat' + i2 + 'Count'].push(0);
-                    }
-
-                }
-                refiners.multiCount ++;
-                refiners.childrenCounts[topKey0] ++;
-                refiners.childrenMultiCounts[topKey0] ++;
-                if ( r0 == '0') { refiners.itemCount ++; }
-
-                /**
-                 * This loop gets the totals used for stats for each stat based on all items with that refiner.
-                 * By design it ignores any items of EntryType = 'start' because the entry that counts is the one that has time.
-                 * Maybe I should just ignore any with zero as time.
-                 */
-                if ( i.EntryType !== 'start') {
-                    for ( let i2 in drillList.refinerStats ) {
-                        let thisStat = drillList.refinerStats[i2].stat;
-                        let thisValue = i.refiners['stat' + i2];
-                        let currentRefinerValue = refiners['stat' + i2][topKey0];
-
-                        if ( thisStat === 'sum' || thisStat === 'avg' || thisStat === 'daysAgo' || thisStat === 'monthsAgo' ) {
-                            //Add numbers up here and divide by total count later
-                            refiners['stat' + i2][topKey0] += thisValue;
-                            refiners['stat' + i2 + 'Count'][topKey0] ++;
-
-                        } else if ( thisStat === 'max' ) {
-                            if ( thisValue > currentRefinerValue || currentRefinerValue === null ) {
-                                //Add numbers up here and divide by total count later
-                                refiners['stat' + i2][topKey0] = thisValue;
-                                refiners['stat' + i2 + 'Count'][topKey0] ++;
-                            } else {
-                                console.log( 'no update: ' + thisValue + ' is NOT LARGER than ' +currentRefinerValue );
-                            }
-
-                        } else if ( thisStat === 'min' ) {
-                            if ( thisValue < currentRefinerValue || currentRefinerValue === null ) {
-                                //Add numbers up here and divide by total count later
-                                refiners['stat' + i2][topKey0] = thisValue;
-                                refiners['stat' + i2 + 'Count'][topKey0] ++;
-                            } else {
-                                console.log( 'no update: ' + thisValue + ' is NOT LESS than ' +currentRefinerValue );
-                            }
-
-
-                        } else { console.log('Not sure what to do with this stat: ', thisStat, i.refiners ) ; }
-
-                    }
-                }
-
-
-                //Do any stat calculations here:
-                //getRefinerStatsForItem
+                refiners =updateThisRefiner( r0, topKey0,  thisRefiner0, refiners, drillList );
+                if (topKey0 < 0 ) { topKey0 = refiners.childrenKeys.length -1; }
+                refiners = updateRefinerStats( i , topKey0,  refiners, drillList );
 
 
                 let thisRefinerValuesLev1 = i.refiners['lev' + 1];
-
-                //  const found = arr1.some(r=> arr2.indexOf(r) >= 0)     https://stackoverflow.com/a/39893636  
-
                 //Go through each array of refiners... 
                 for ( let r1 in thisRefinerValuesLev1 ) { //Go through all list items
    
@@ -392,22 +371,11 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
                     let refiners1 = refiners.childrenObjs[topKey0];
                     let topKey1 = refiners1.childrenKeys.indexOf( thisRefiner1 );
 
-                    if ( topKey1 < 0 ) { //Add to topKeys and create keys child object
-                        refiners1.childrenKeys.push( thisRefiner1 );
-                        refiners1.childrenObjs.push( createNewRefinerLayer ( thisRefiner1, drillList ) );
-                        topKey1 = refiners1.childrenKeys.length -1;
-                        refiners1.childrenCounts.push( 0 );
-                        refiners1.childrenMultiCounts.push( 0 );
-                    }
-                    refiners1.multiCount ++;
-                    refiners1.childrenCounts[topKey1] ++;
-                    refiners1.childrenMultiCounts[topKey1] ++;
-                    if ( r1 == '0') { refiners1.itemCount ++; }
+                    refiners1 =updateThisRefiner( r0, topKey1,  thisRefiner1, refiners1, drillList );
+                    if (topKey1 < 0 ) { topKey1 = refiners1.childrenKeys.length -1; }
+                    refiners1 = updateRefinerStats( i , topKey1,  refiners1, drillList );
 
                     let thisRefinerValuesLev2 = i.refiners['lev' + 2];
-
-                    //  const found = arr1.some(r=> arr2.indexOf(r) >= 0)     https://stackoverflow.com/a/39893636  
-
                     //Go through each array of refiners... 
                     for ( let r2 in thisRefinerValuesLev2 ) { //Go through all list items
 
@@ -415,27 +383,13 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
                         let refiners2 = refiners1.childrenObjs[topKey1];
                         let topKey2 = refiners2.childrenKeys.indexOf( thisRefiner2 );
 
-                        if ( topKey2 < 0 ) { //Add to topKeys and create keys child object
-                            refiners2.childrenKeys.push( thisRefiner2 );
-                            refiners2.childrenObjs.push( createNewRefinerLayer ( thisRefiner2, drillList ) );
-                            topKey2 = refiners2.childrenKeys.length -1;
-                            refiners2.childrenCounts.push( 0 );
-                            refiners2.childrenMultiCounts.push( 0 );
-                        }
-                        refiners2.multiCount ++;
-                        refiners2.childrenCounts[topKey2] ++;
-                        refiners2.childrenMultiCounts[topKey2] ++;
-                        if ( r2 == '0') { refiners2.itemCount ++; }
-                        //now with topKey values, do second layer
-                    }
+                        refiners2 =updateThisRefiner( r0, topKey2,  thisRefiner2, refiners2, drillList );
+                        if (topKey2 < 0 ) { topKey2 = refiners2.childrenKeys.length -1; }
+                        refiners2 = updateRefinerStats( i , topKey2,  refiners2, drillList );
 
-                    //now with topKey values, do second layer
-                }
-
-                //now with topKey values, do second layer
-            }
-
-
+                    } //for ( let r2 in thisRefinerValuesLev2 )
+                } //for ( let r1 in thisRefinerValuesLev1 )
+            } //for ( let r0 in thisRefinerValuesLev0 )
         }
     }
 
