@@ -359,6 +359,38 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         return emptyRules;
     }
 
+    private buildSummaryCountCharts( title: string, refinerObj: IRefinerLayer , version: 'refinerCount' | 'perato') {
+        let resultSummary = null;
+
+        let labels = refinerObj.childrenKeys ;
+        let counts = refinerObj.childrenMultiCounts;
+
+        let chartData : ICSSChartSeries = {
+            title: title,
+            labels: labels,
+            chartType: 'bar',
+            stacked: version === 'refinerCount' ? true : false,
+            barValueAsPercent: false,
+            sortStack: version === 'perato' ? 'dec' : false,
+
+            //The string value here must match the object key below
+            barValues: 'val1',
+            val1: counts ,
+
+            stylesChart: { paddingBottom: 0, marginBottom: 0, marginTop: 0},
+            
+        };
+//        console.log('2 Creating Chart data: ',labels );
+//        console.log('2 Creating Chart data: ',counts );
+
+        resultSummary = 
+        <Cssreactbarchart 
+            chartData = { [chartData] }
+        ></Cssreactbarchart>;
+
+        return resultSummary;
+
+    }
 
     private createRefinerRuleCalcs( calcs: string ) {
         let theCalcs : any = null;
@@ -702,34 +734,25 @@ public componentDidUpdate(prevProps){
                  *                                                                    
                  */
 
-                let summary = null;
+                let summaryCharts = [];
                 if ( this.state.showSummary === true ) {
-                    let labels = this.state.refinerObj.childrenKeys ;
+                    summaryCharts.push( this.buildSummaryCountCharts( 'Refiner1', this.state.refinerObj, 'refinerCount' ) );
 
-                    //let counts = JSON.parse(JSON.stringify(this.state.refinerObj.childrenMultiCounts));
-                    let counts = this.state.refinerObj.childrenMultiCounts;
+                    if ( this.state.searchMeta[0] !== 'All' ) {
+                        let childIndex0 = this.state.refinerObj.childrenKeys.indexOf(this.state.searchMeta[0]);
 
-                    let chartData : ICSSChartSeries = {
-                        title: 'Refiner1',
-                        labels: labels,
-                        chartType: 'bar',
-                        stacked: true,
-                        barValueAsPercent: false,
-                        sortStack: false,
+                        summaryCharts.push( this.buildSummaryCountCharts( 'Refiner2', this.state.refinerObj.childrenObjs[childIndex0], 'refinerCount' ) );
+                        if ( this.state.searchMeta.length > 1 && this.state.searchMeta[1] !== 'All' ) {
+                            let childIndex1 = this.state.refinerObj.childrenObjs[childIndex0].childrenKeys.indexOf(this.state.searchMeta[1]);
+                            
+                            summaryCharts.push( this.buildSummaryCountCharts( 'Refiner3', this.state.refinerObj.childrenObjs[childIndex0].childrenObjs[childIndex1], 'refinerCount' ) );
 
-                        //The string value here must match the object key below
-                        barValues: 'val1',
-                        val1: counts ,
-                    };
-                    console.log('2 Creating Chart data: ',labels );
-                    console.log('2 Creating Chart data: ',counts );
+                        
+                        }
 
-                    summary = 
-                    <Cssreactbarchart 
-                        chartData = { [chartData] }
-                    ></Cssreactbarchart>;
+                    }
 
-                }
+                } else { summaryCharts = null ; }
 
 
                 /***
@@ -775,7 +798,7 @@ public componentDidUpdate(prevProps){
                             { refinersObjects  }
                         </Stack>
 
-                        { summary }
+                        <div> { summaryCharts } </div>
 
                         <div>
 

@@ -86,7 +86,6 @@ export default class Cssreactbarchart extends React.Component<ICssreactbarchartP
     super(props);
 
   }
-
   
   public componentDidMount() {
     this._updateStateOnPropsChange();
@@ -355,10 +354,6 @@ public componentDidUpdate(prevProps){
         <h6 style={ thisTitleStyle }>{ cd.title }</h6> :
         <div style={ thisTitleStyle }>{ cd.title }<span style={{paddingLeft: '15px', fontSize: 'smaller'}}>( { barCount} ) </span></div>;
 
-        console.log('1 ChartDataEndOfRender:', cd.labels);
-        console.log('1 ChartDataEndOfRender:', cd.val1);
-        console.log('1 ChartDataEndOfRender:', cd.percents);
-
       return <div className={ stylesC.row } style={ thisRowStyle }>
           { titleEle }
           <div className={ stylesC.chart } style= { stylesChart } >
@@ -383,20 +378,14 @@ public componentDidUpdate(prevProps){
               <h3>Chart Title</h3>
             </div>
  */
-  console.log('2 ChartDataEndOfRender:', chartData[0].labels);
-  console.log('2 ChartDataEndOfRender:', chartData[0].val1);
-  console.log('2 ChartDataEndOfRender:', chartData[0].percents);
 
     return (
       <div className={ styles.cssreactbarchart } style = {{  }}>
-        <div className={ styles.container }>
           <figure className={ stylesC.cssChart }>
-
             <div className={ stylesC.graphic } >
               { charts }
             </div>
           </figure>
-        </div>
       </div>
     );
   }
