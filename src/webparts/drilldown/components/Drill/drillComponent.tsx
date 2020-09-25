@@ -14,7 +14,7 @@ import "@pnp/sp/webs";
 
 import { IContentsListInfo, IMyListInfo, IServiceLog, IContentsLists } from '../../../../services/listServices/listTypes'; //Import view arrays for Time list
 
-import { doesObjectExistInArray, addItemToArrayIfItDoesNotExist } from '../../../../services/arrayServices';
+import { convertNumberArrayToRelativePercents, doesObjectExistInArray, addItemToArrayIfItDoesNotExist } from '../../../../services/arrayServices';
 
 import { ITheTime, weekday3, monthStr3 } from '../../../../services/dateServices';
 
@@ -31,7 +31,7 @@ import { createAdvancedContentChoices } from '../fields/choiceFieldBuilder';
 
 import { IContentsToggles, makeToggles } from '../fields/toggleFieldBuilder';
 
-import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef, IRefinerStat } from '../IReUsableInterfaces';
+import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef, IRefinerStat, ICSSChartSeries } from '../IReUsableInterfaces';
 
 import { createLink } from '../HelpInfo/AllLinks';
 
@@ -63,6 +63,7 @@ import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp
 
 import { unstable_renderSubtreeIntoContainer } from 'react-dom';
 
+import Cssreactbarchart from '../CssCharts/Cssreactbarchart';
 
 export type IRefinerStyles = 'pivot' | 'commandBar' | 'other';
 
@@ -295,7 +296,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             }
         });
 
-        console.log('getAppropriateViewFields BEST Width:', maxViewWidth );
+ //       console.log('getAppropriateViewFields BEST Width:', maxViewWidth );
 
         let avgWidth = result.length > 0 ? currentWidth/result.length : 100;
         let completeResult = result.map( f => {
@@ -310,7 +311,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             return thisField;
         });
 
-        console.log('getAppropriateViewFields:', completeResult);
+        //console.log('getAppropriateViewFields:', completeResult);
         return completeResult;
 
     }
@@ -341,7 +342,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
                 maxViewWidth = vd.minWidth;
             }
         });
-        console.log('includeDetails: ', result);
+        //console.log('includeDetails: ', result);
         return result;
 
     }
@@ -434,7 +435,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             progress: null,
 
-            refinerObj: {childrenKeys: this.props.refiners, childrenObjs: [] , multiCount: 0, itemCount: 0 },
+            refinerObj: {childrenKeys: this.props.refiners, childrenObjs: [], childrenCounts: [], childrenMultiCounts: [] , multiCount: 0, itemCount: 0 },
             showDisabled: this.props.showDisabled ? this.props.showDisabled : false,
 
             pivotCats: [],
@@ -526,6 +527,17 @@ public componentDidUpdate(prevProps){
 
             let toggleTipsButton = createIconButton('Help','Toggle Tips',this.toggleTips.bind(this), null, null );
 
+            /***
+             *    d888888b d8b   db d88888b  .d88b.       d8888b.  .d8b.   d888b  d88888b 
+             *      `88'   888o  88 88'     .8P  Y8.      88  `8D d8' `8b 88' Y8b 88'     
+             *       88    88V8o 88 88ooo   88    88      88oodD' 88ooo88 88      88ooooo 
+             *       88    88 V8o88 88~~~   88    88      88~~~   88~~~88 88  ooo 88~~~~~ 
+             *      .88.   88  V888 88      `8b  d8'      88      88   88 88. ~8~ 88.     
+             *    Y888888P VP   V8P YP       `Y88P'       88      YP   YP  Y888P  Y88888P 
+             *                                                                            
+             *                                                                            
+             */
+
             const infoPage = <div>
             <InfoPage 
                 allLoaded={ true }
@@ -538,6 +550,17 @@ public componentDidUpdate(prevProps){
             let errMessage = this.state.errMessage === '' ? null : <div>
                 { this.state.errMessage }
             </div>;
+
+            /***
+             *    .d8888. d88888b  .d8b.  d8888b.  .o88b. db   db      d8888b.  .d88b.  db    db 
+             *    88'  YP 88'     d8' `8b 88  `8D d8P  Y8 88   88      88  `8D .8P  Y8. `8b  d8' 
+             *    `8bo.   88ooooo 88ooo88 88oobY' 8P      88ooo88      88oooY' 88    88  `8bd8'  
+             *      `Y8b. 88~~~~~ 88~~~88 88`8b   8b      88~~~88      88~~~b. 88    88  .dPYb.  
+             *    db   8D 88.     88   88 88 `88. Y8b  d8 88   88      88   8D `8b  d8' .8P  Y8. 
+             *    `8888Y' Y88888P YP   YP 88   YD  `Y88P' YP   YP      Y8888P'  `Y88P'  YP    YP 
+             *                                                                                   
+             *                                                                                   
+             */
 
             /*https://developer.microsoft.com/en-us/fabric#/controls/web/searchbox*/
             let searchBox =  
@@ -559,8 +582,17 @@ public componentDidUpdate(prevProps){
 
             const stackPageTokens: IStackTokens = { childrenGap: 10 };
 
-            let toggles = <div style={{ float: 'right' }}> { makeToggles(this.getPageToggles()) } </div>;
-
+            /***
+             *    d8888b. d88888b d88888b d888888b d8b   db d88888b d8888b. .d8888. 
+             *    88  `8D 88'     88'       `88'   888o  88 88'     88  `8D 88'  YP 
+             *    88oobY' 88ooooo 88ooo      88    88V8o 88 88ooooo 88oobY' `8bo.   
+             *    88`8b   88~~~~~ 88~~~      88    88 V8o88 88~~~~~ 88`8b     `Y8b. 
+             *    88 `88. 88.     88        .88.   88  V888 88.     88 `88. db   8D 
+             *    88   YD Y88888P YP      Y888888P VP   V8P Y88888P 88   YD `8888Y' 
+             *                                                                      
+             *                                                                      
+             */
+                        
             //                <div> { resizePage0 } </div>
             let showRefiner0 = true;
             let showRefiner1 = this.state.searchMeta.length >= 1 && this.state.searchMeta[0] !== 'All' ? true : false;
@@ -623,6 +655,17 @@ public componentDidUpdate(prevProps){
                 { errMessage }</div>;
             } else {
 
+                /***
+                 *    db      d888888b .d8888. d888888b      d888888b d888888b d88888b .88b  d88. .d8888. 
+                 *    88        `88'   88'  YP `~~88~~'        `88'   `~~88~~' 88'     88'YbdP`88 88'  YP 
+                 *    88         88    `8bo.      88            88       88    88ooooo 88  88  88 `8bo.   
+                 *    88         88      `Y8b.    88            88       88    88~~~~~ 88  88  88   `Y8b. 
+                 *    88booo.   .88.   db   8D    88           .88.      88    88.     88  88  88 db   8D 
+                 *    Y88888P Y888888P `8888Y'    YP         Y888888P    YP    Y88888P YP  YP  YP `8888Y' 
+                 *                                                                                        
+                 *                                                                                        
+                 */
+
                 let blueBar = this.state.searchMeta.map( m => { return <span><span style={{ paddingLeft: 0 }}> {'>'} </span><span style={{ paddingLeft: 10, paddingRight: 20 }}> { m } </span></span>; });
 
 
@@ -647,33 +690,110 @@ public componentDidUpdate(prevProps){
                     includeDetails= { viewDefMode }
                 ></ReactListItems>;
 
+
+                /***
+                 *    .d8888. db    db .88b  d88. .88b  d88.  .d8b.  d8888b. db    db 
+                 *    88'  YP 88    88 88'YbdP`88 88'YbdP`88 d8' `8b 88  `8D `8b  d8' 
+                 *    `8bo.   88    88 88  88  88 88  88  88 88ooo88 88oobY'  `8bd8'  
+                 *      `Y8b. 88    88 88  88  88 88  88  88 88~~~88 88`8b      88    
+                 *    db   8D 88b  d88 88  88  88 88  88  88 88   88 88 `88.    88    
+                 *    `8888Y' ~Y8888P' YP  YP  YP YP  YP  YP YP   YP 88   YD    YP    
+                 *                                                                    
+                 *                                                                    
+                 */
+
+                let summary = null;
+                if ( this.state.showSummary === true ) {
+                    let labels = this.state.refinerObj.childrenKeys ;
+                    console.log('1 Creating Chart data: ',this.state.refinerObj.childrenKeys );
+                    console.log('1 Creating Chart data: ',this.state.refinerObj.childrenCounts );
+                    console.log('1 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts );
+
+                    //let counts = JSON.parse(JSON.stringify(this.state.refinerObj.childrenMultiCounts));
+                    let counts = this.state.refinerObj.childrenMultiCounts;
+
+                    let chartData : ICSSChartSeries = {
+                        title: 'Refiner1',
+                        labels: labels,
+                        chartType: 'bar',
+                        stacked: true,
+                        barValueAsPercent: false,
+                        sortStack: false,
+
+                        //The string value here must match the object key below
+                        barValues: 'val1',
+                        val1: counts ,
+                    };
+                    console.log('2 Creating Chart data: ',labels );
+                    console.log('2 Creating Chart data: ',counts );
+
+                    summary = 
+                    <Cssreactbarchart 
+                        chartData = { [chartData] }
+                    ></Cssreactbarchart>;
+
+                    console.log('3 Creating Chart data: ',this.state.refinerObj.childrenKeys );
+                    console.log('3 Creating Chart data: ',this.state.refinerObj.childrenCounts );
+                    console.log('3 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts );
+                }
+
+
+                /***
+                 *    d888888b  .d88b.   d888b   d888b  db      d88888b .d8888. 
+                 *    `~~88~~' .8P  Y8. 88' Y8b 88' Y8b 88      88'     88'  YP 
+                 *       88    88    88 88      88      88      88ooooo `8bo.   
+                 *       88    88    88 88  ooo 88  ooo 88      88~~~~~   `Y8b. 
+                 *       88    `8b  d8' 88. ~8~ 88. ~8~ 88booo. 88.     db   8D 
+                 *       YP     `Y88P'   Y888P   Y888P  Y88888P Y88888P `8888Y' 
+                 *                                                              
+                 *                                                              
+                 */
+
+
+                let toggles = <div style={{ float: 'right' }}> { makeToggles(this.getPageToggles()) } </div>;
+
+
+
+                /***
+                 *    d888888b db   db d888888b .d8888.      d8888b.  .d8b.   d888b  d88888b 
+                 *    `~~88~~' 88   88   `88'   88'  YP      88  `8D d8' `8b 88' Y8b 88'     
+                 *       88    88ooo88    88    `8bo.        88oodD' 88ooo88 88      88ooooo 
+                 *       88    88~~~88    88      `Y8b.      88~~~   88~~~88 88  ooo 88~~~~~ 
+                 *       88    88   88   .88.   db   8D      88      88   88 88. ~8~ 88.     
+                 *       YP    YP   YP Y888888P `8888Y'      88      YP   YP  Y888P  Y88888P 
+                 *                                                                           
+                 *                                                                           
+                 */
+
                 thisPage = <div className={styles.contents}>
                     <div className={stylesD.drillDown}>
                         <div className={styles.floatRight}>{ toggleTipsButton }</div>
                         <div className={ this.state.errMessage === '' ? styles.hideMe : styles.showErrorMessage  }>{ this.state.errMessage } </div>
-                            {  /* <p><mark>Check why picking Assists does not show Help as a chapter even though it's the only chapter...</mark></p> */ }
-                            <div className={( this.state.showTips ? '' : styles.hideMe )}>
-                                { infoPage }
-                            </div>
-                            <Stack horizontal={true} wrap={true} horizontalAlign={"space-between"} verticalAlign= {"center"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
-                                { searchBox } { toggles }
-                            </Stack>
-
-                            <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens} className={ stylesD.refiners }>{/* Stack for Buttons and Webs */}
-                                { refinersObjects  }
-                            </Stack>
-
-                            <div>
-
-                                <div className={ this.state.searchCount !== 0 ? styles.hideMe : styles.showErrorMessage  }>{ noInfo } </div>
-
-                                <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
-                                    { this.state.viewType === 'React' ? reactListItems : drillItems }
-                                    {   }
-                                </Stack>
-                            </div> { /* Close tag from above noInfo */}
+                        {  /* <p><mark>Check why picking Assists does not show Help as a chapter even though it's the only chapter...</mark></p> */ }
+                        <div className={( this.state.showTips ? '' : styles.hideMe )}>
+                            { infoPage }
                         </div>
-                    </div>;
+                        <Stack horizontal={true} wrap={true} horizontalAlign={"space-between"} verticalAlign= {"center"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
+                            { searchBox } { toggles }
+                        </Stack>
+
+                        <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens} className={ stylesD.refiners }>{/* Stack for Buttons and Webs */}
+                            { refinersObjects  }
+                        </Stack>
+
+                        { summary }
+
+                        <div>
+
+                            <div className={ this.state.searchCount !== 0 ? styles.hideMe : styles.showErrorMessage  }>{ noInfo } </div>
+
+                            <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
+                                { this.state.viewType === 'React' ? reactListItems : drillItems }
+                                {   }
+                            </Stack>
+                        </div> { /* Close tag from above noInfo */}
+                    </div>
+                </div>;
 
                 if ( this.state.allItems.length === 0 ) {
                     thisPage = <div style={{ paddingBottom: 30 }}className={styles.contents}>
@@ -692,6 +812,10 @@ public componentDidUpdate(prevProps){
  *                                                                 
  *                                                                 
  */
+
+console.log('4 Creating Chart data: ',this.state.refinerObj.childrenKeys );
+console.log('4 Creating Chart data: ',this.state.refinerObj.childrenCounts );
+console.log('4 Creating Chart data: ',this.state.refinerObj.childrenMultiCounts );
 
             return (
                 <div className={ styles.contents }>
@@ -734,7 +858,10 @@ public componentDidUpdate(prevProps){
 
         cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0, refinerObj) );
 
-        console.log('addTheseItemsToState refinerObj: ', refinerObj);
+        console.log('addTheseItemsToState: childrenKeys',refinerObj.childrenKeys );
+        console.log('addTheseItemsToState: childrenCounts',refinerObj.childrenCounts );
+        console.log('addTheseItemsToState: childrenMultiCounts',refinerObj.childrenMultiCounts );
+
         console.log('addTheseItemsToState allItems: ', allItems);
 
         this.setState({
@@ -988,6 +1115,10 @@ public componentDidUpdate(prevProps){
         }
     }
 
+    console.log('getCurrentRefinerTree: ',refinerTree );
+    console.log('getCurrentRefinerTree: ',countTree );
+    console.log('getCurrentRefinerTree: ',multiTree );
+
     result = {
         refinerTree: refinerTree,
         countTree: countTree,
@@ -1014,6 +1145,11 @@ public componentDidUpdate(prevProps){
     let thisMetaString = JSON.stringify( newMeta );
     let metaChanged = prevMetaString === thisMetaString ? false : true;
     let refinerObj = this.state.refinerObj;
+
+    console.log('B searchForItems: childrenKeys',refinerObj.childrenKeys );
+    console.log('B searchForItems: childrenCounts',refinerObj.childrenCounts );
+    console.log('B searchForItems: childrenMultiCounts',refinerObj.childrenMultiCounts );
+
     /**
      * example of newMeta:
      * Clicking on 1st refiner:     newMeta: ["Daily"]
@@ -1073,6 +1209,10 @@ public componentDidUpdate(prevProps){
 
 
     searchCount = newFilteredItems.length;
+
+    console.log('A searchForItems: childrenKeys',refinerObj.childrenKeys );
+    console.log('A searchForItems: childrenCounts',refinerObj.childrenCounts );
+    console.log('A searchForItems: childrenMultiCounts',refinerObj.childrenMultiCounts );
 
     this.setState({
       searchedItems: newFilteredItems,
@@ -1233,6 +1373,10 @@ public componentDidUpdate(prevProps){
             return result.push(thisItem);
 
         });
+
+        console.log('convertRefinersToCMDs: childrenKeys',refinerObj.childrenKeys );
+        console.log('convertRefinersToCMDs: childrenCounts',refinerObj.childrenCounts );
+        console.log('convertRefinersToCMDs: childrenMultiCounts',refinerObj.childrenMultiCounts );
 
         return result;
     }

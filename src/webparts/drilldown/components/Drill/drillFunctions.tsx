@@ -112,14 +112,13 @@ export async function getAllItems( drillList: IDrillList, addTheseItemsToState: 
 //                                                                                                   
 //    
 
-
 function sortRefinerObject ( allRefiners: IRefiners, drillList: IDrillList ) {
 
     //webPartDefs.sort((a, b) => (a.alias > b.alias) ? 1 : -1);
 
 //    allRefiners.childrenKeys.sort(); //Removed when using sortKeysByOtherKey
     allRefiners.childrenObjs.sort((a, b) => (a.thisKey > b.thisKey) ? 1 : -1);
-    let statsToSort : string[] = [];
+    let statsToSort : string[] = ['childrenCounts','childrenMultiCounts'];
     for ( let i in drillList.refinerStats ) {
         statsToSort.push('stat' + i);
         statsToSort.push('stat' + i + 'Count');
@@ -165,6 +164,8 @@ function createNewRefinerLayer( thisKey: string, drillList: IDrillList ) {
         thisKey: thisKey,
         childrenKeys: [],
         childrenObjs: [],
+        childrenCounts: [],
+        childrenMultiCounts: [],
     };
 
     for ( let i in drillList.refinerStats ) {
@@ -187,6 +188,8 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
         itemCount: 0,
         childrenKeys: [],
         childrenObjs: [],
+        childrenCounts: [],
+        childrenMultiCounts: [],
     };
 
     for ( let i in drillList.refinerStats ) {
@@ -217,14 +220,19 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
                 if ( topKey0 < 0 ) { //Add to topKeys and create keys child object
                     refiners.childrenKeys.push( thisRefiner0 );
                     refiners.childrenObjs.push( createNewRefinerLayer ( thisRefiner0, drillList ) );
+                    refiners.childrenCounts.push( 0 );
+                    refiners.childrenMultiCounts.push( 0 );
                     topKey0 = refiners.childrenKeys.length -1;
                     //Add empty object in array for later use
                     for ( let i2 in drillList.refinerStats ) {
                         refiners['stat' + i2].push(null);
                         refiners['stat' + i2 + 'Count'].push(0);
                     }
+
                 }
                 refiners.multiCount ++;
+                refiners.childrenCounts[topKey0] ++;
+                refiners.childrenMultiCounts[topKey0] ++;
                 if ( r0 == '0') { refiners.itemCount ++; }
 
                 /**
@@ -288,8 +296,12 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
                         refiners1.childrenKeys.push( thisRefiner1 );
                         refiners1.childrenObjs.push( createNewRefinerLayer ( thisRefiner1, drillList ) );
                         topKey1 = refiners1.childrenKeys.length -1;
+                        refiners1.childrenCounts.push( 0 );
+                        refiners1.childrenMultiCounts.push( 0 );
                     }
                     refiners1.multiCount ++;
+                    refiners1.childrenCounts[topKey1] ++;
+                    refiners1.childrenMultiCounts[topKey1] ++;
                     if ( r1 == '0') { refiners1.itemCount ++; }
 
                     let thisRefinerValuesLev2 = i.refiners['lev' + 2];
@@ -307,8 +319,12 @@ export function buildRefinersObject ( items: IDrillItemInfo[], drillList: IDrill
                             refiners2.childrenKeys.push( thisRefiner2 );
                             refiners2.childrenObjs.push( createNewRefinerLayer ( thisRefiner2, drillList ) );
                             topKey2 = refiners2.childrenKeys.length -1;
+                            refiners2.childrenCounts.push( 0 );
+                            refiners2.childrenMultiCounts.push( 0 );
                         }
                         refiners2.multiCount ++;
+                        refiners2.childrenCounts[topKey2] ++;
+                        refiners2.childrenMultiCounts[topKey2] ++;
                         if ( r2 == '0') { refiners2.itemCount ++; }
                         //now with topKey values, do second layer
                     }

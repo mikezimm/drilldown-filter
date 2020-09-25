@@ -95,6 +95,8 @@ export interface IRefiners {
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs: IRefinerLayer[];
+  childrenMultiCounts: number[];
+  childrenCounts: number[];
   stat0?: number;
   stat1?: number;
   stat2?: number;
@@ -123,6 +125,8 @@ export interface IRefinerLayer {
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs?: IRefinerLayer[];
+  childrenMultiCounts?: number[];
+  childrenCounts?: number[];
   stat0?: number;
   stat1?: number;
   stat2?: number;
@@ -251,10 +255,10 @@ export interface IMyFonts{
     chartType: 'bar' | 'other';
 
     stacked?: boolean;
-    sortStack?: 'asc' | 'dec' ;
+    sortStack?: 'asc' | 'dec' | false ;
     barValueAsPercent? : boolean;
     height?: number | string ; //This would be horizonal bar height... one horizontal layer
-    barValues?: 'val1' | 'sums' | 'avgs' | 'percents';
+    barValues?: 'val1' | 'sums' | 'avgs' | 'percents' | string ;
     titleLocation?: 'top' | 'side';
 
     barColors?: 'blue' | 'green' |'brown' | 'gray' | 'red' | 'brown' | 'themed' | 'custom' ;

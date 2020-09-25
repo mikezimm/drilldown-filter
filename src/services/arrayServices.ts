@@ -1,7 +1,4 @@
 
-//Updated Jan 5, 2020 per https://pnp.github.io/pnpjs/getting-started/
-import { Web } from "@pnp/sp/presets/all";
-
 /**
  * This just takes an object, and returns a string of the Key and Value.
  * Used for logging
@@ -233,14 +230,39 @@ export interface ICompareResult {
 
  }
 
- 
-// 2020-09-21:  Updated from drilldown-filter webpart
-export function addItemToArrayIfItDoesNotExist (arr : string[], item: string ) {
+// 2020-09-24:  Updated from drilldown-filter webpart
+export function addItemToArrayIfItDoesNotExist (arr : string[], item: string, suppressUndefined: boolean = true ) {
     if ( item === undefined ) { 
-        console.log('addItemToArrayIfItDoesNotExist found undefined!') ;
+        if ( suppressUndefined != true ) {
+            console.log('addItemToArrayIfItDoesNotExist found undefined!') ;
+        }
      }
-    if ( item != '' && arr.indexOf(item) < 0 ) { arr.push(item); }
+    if ( item != '' && item !== undefined && arr.indexOf(item) < 0  ) { arr.push(item); }
     return arr;
+}
+
+/**
+ * 
+ * @param arr 
+ * @param percentsAsWholeNumbers -- If true, converts 25% from 0.25 to 25.
+ */
+export function convertNumberArrayToRelativePercents( arr: number[] , percentsAsWholeNumbers : boolean = true ) {
+
+    let result : number[] = [];
+    //Get sum of array of numbers:  https://codeburst.io/javascript-arrays-finding-the-minimum-maximum-sum-average-values-f02f1b0ce332
+    // Can't do this:  const arrSum = arr => arr.reduce((a,b) => a + b, 0) like example.
+    // And THIS changes arr to single value:  const arrSum = arr.reduce((a,b) => a + b, 0);
+    let arrSum = 0;
+    arr.map( v => { if ( v !== null && v !== undefined ) { arrSum += v;} });
+
+    let multiplier = percentsAsWholeNumbers === true ? 100 : 1 ;
+
+    if ( arrSum === 0 ) { console.log('Unable to convertNumberArrayToRelativePercents because Sum === 0', arrSum, arr ) ; }
+    arr.map( v => {
+        result.push( arrSum !== 0 ? multiplier * v / arrSum : multiplier * v / 1 )  ;
+    });
+
+    return result;
 }
 
 export function sortKeysByOtherKey( obj: any, sortKey: string, order: 'asc' | 'dec', dataType: 'number' | 'string', otherKeys: string[]) {
@@ -261,14 +283,20 @@ export function sortKeysByOtherKey( obj: any, sortKey: string, order: 'asc' | 'd
       let currentIndex = obj[sortKey].indexOf(v); //Get index of the first sortable value in original array
       let i = 0;
       otherKeys.map( key => {
-        otherKeyArrays[key].push( obj[key][currentIndex] );
+        if ( obj[key] ) {
+            otherKeyArrays[key].push( obj[key][currentIndex] );
+        } else {
+            console.log('sortKeysByOtherKey: Unable to push obj[key][currentIndex] because obj[key] does not exist!', obj,key,currentIndex );
+        }
       });
       obj[sortKey][currentIndex] = null;
       x ++;
     }
   
     otherKeys.map( key => {
+
       obj[key] = otherKeyArrays[key] ;
+
     }); 
   
     obj[sortKey] = sortCopy;

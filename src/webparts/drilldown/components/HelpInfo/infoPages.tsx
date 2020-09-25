@@ -110,7 +110,7 @@ public constructor(props:IInfoPageProps){
     public render(): React.ReactElement<IInfoPageProps> {
 
         if ( this.props.allLoaded && this.props.showInfo ) {
-            console.log('infoPages.tsx', this.props, this.state);
+            //console.log('infoPages.tsx', this.props, this.state);
 
             let pageChoices = choiceBuilders.creatInfoChoices(this.state.selectedChoice, this._updateChoice.bind(this));
             let thisPage = null;

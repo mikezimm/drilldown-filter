@@ -183,7 +183,7 @@ export default class ReactListItems extends React.Component<IReactListItemsProps
 
     public render(): React.ReactElement<IReactListItemsProps> {
 
-        console.log( 'ReactListItems props & state: ', this.props, this.state );
+        //console.log( 'ReactListItems props & state: ', this.props, this.state );
 
         let thisLog = null;
 
