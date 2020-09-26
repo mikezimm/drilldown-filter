@@ -78,27 +78,13 @@ export interface IItemRefiners {
   stat7?: number;
   stat8?: number;
   stat9?: number;
-  stat0Count?: number;
-  stat1Count?: number;
-  stat2Count?: number;
-  stat3Count?: number;
-  stat4Count?: number;
-  stat5Count?: number;
-  stat6Count?: number;
-  stat7Count?: number;
-  stat8Count?: number;
-  stat9Count?: number;
 }
 
 export interface IRefiners {
-
-  thisKey: string;
   multiCount: number; // Count when counting multi-value fields each time
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs: IRefinerLayer[];
-  childrenMultiCounts: number[];
-  childrenCounts: number[];
   stat0?: number;
   stat1?: number;
   stat2?: number;
@@ -109,16 +95,6 @@ export interface IRefiners {
   stat7?: number;
   stat8?: number;
   stat9?: number;
-  stat0Count?: number;
-  stat1Count?: number;
-  stat2Count?: number;
-  stat3Count?: number;
-  stat4Count?: number;
-  stat5Count?: number;
-  stat6Count?: number;
-  stat7Count?: number;
-  stat8Count?: number;
-  stat9Count?: number;
 }
 
 export interface IRefinerLayer {
@@ -127,8 +103,6 @@ export interface IRefinerLayer {
   itemCount: number; // Count when only counting multi-value fields once
   childrenKeys: string[];
   childrenObjs?: IRefinerLayer[];
-  childrenMultiCounts?: number[];
-  childrenCounts?: number[];
   stat0?: number;
   stat1?: number;
   stat2?: number;
@@ -139,16 +113,6 @@ export interface IRefinerLayer {
   stat7?: number;
   stat8?: number;
   stat9?: number;
-  stat0Count?: number;
-  stat1Count?: number;
-  stat2Count?: number;
-  stat3Count?: number;
-  stat4Count?: number;
-  stat5Count?: number;
-  stat6Count?: number;
-  stat7Count?: number;
-  stat8Count?: number;
-  stat9Count?: number;
 }
 
 export interface IPickedWebBasic {
@@ -242,52 +206,6 @@ export interface IMyFonts{
   
   }
 
-  
-  export interface ILabelColor {
-    label: string;
-    barColor?: string;
-    fontColor?: string;
-    fontStyle?: string;
-  }
-
-  export type ICSSChartTypes = 'pareto-asc' | 'pareto-dec' | 'pareto-labels' | 'stacked-column-labels' | 'stacked-column-dec' | 'stacked-column-asc';
-  export const CSSChartTypes : ICSSChartTypes[] = ['pareto-asc' , 'pareto-dec' , 'pareto-labels' , 'stacked-column-labels' , 'stacked-column-dec' , 'stacked-column-asc'];
-
-  export type ISeriesSort = 'asis' | 'labels' | 'asc' | 'dec' | string ;
-
-  export interface ICSSChartSeries {
-    title: string;
-    labels: any[];
-    chartTypes: ICSSChartTypes[];
-    activeType?: number;
-    key: string;
-
-    barValueAsPercent? : boolean;
-    height?: number | string ; //This would be horizonal bar height... one horizontal layer
-    barValues?: 'val1' | 'sums' | 'avgs' | 'percents' | string ;
-    titleLocation?: 'top' | 'side';
-
-    barColors?: 'blue' | 'green' |'brown' | 'gray' | 'red' | 'brown' | 'themed' | 'custom' ;
-    customColors?: ILabelColor[];
-    axisTitle?: string;
-    val1?: number[];
-    percents?: any[];
-    count?: number;
-    avg?: number;
-    sum?: number;
-    min?: number;
-    max?: number;
-    changes?: any[];
-    changeNotes?: string[];
-    warnNotes?: string[];
-    errorNotes?: string[];
-    stylesChart?: any;
-    stylesTitle?: any;
-    stylesRow?: any;
-    stylesBlock?: any;
-    stylesLabel?: any;
-    stylesValue?: any;
-  }
   // , IChartSeries, ICharNote
 
 export interface IChartSeries {

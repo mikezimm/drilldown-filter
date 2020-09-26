@@ -181,10 +181,28 @@ import {
   
             ]}, // this group
 
+          // 2 - Source and destination list information
+          {  groupName: 'Summary Stats',
+              isCollapsed: true ,
+              groupFields: [
 
+                PropertyPaneLink('JSON Link' , {
+                    text: 'Use this site to more easily work on JSON',
+                    href: 'https://codebeautify.org/jsonviewer',
+                    target: '_blank',
+                    }),
+
+                PropertyPaneTextField('stats', {
+                    label: 'Summary Stats',
+                    description: 'Simple chart data',
+                    multiline: true,
+                    }),
+  
+            ]}, // this group
 
 
           ]}; // Groups
+
     } // getPropertyPanePage()
   }
   

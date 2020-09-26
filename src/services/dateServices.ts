@@ -429,7 +429,12 @@ export function getTimeDelta(time1, time2, inWhat : string){
   let date = new Date(time1).getTime();
   let now = new Date(time2).getTime();
   let age : number = (now - date);
-  if (inWhat === 'days') { 
+
+  if (inWhat === 'months') { 
+    age =  age/(1000 * 60 * 60 * 24 * 30.44 ) ;
+    age = Math.round(age * 10) / 10;  //2020-03-02:  Added so that delta days is always whole number when in reality, 8 months out of the year there is an extra hour per day
+  }
+  else if (inWhat === 'days') { 
     age =  age/(1000 * 60 * 60 * 24) ;
     age = Math.round(age);  //2020-03-02:  Added so that delta days is always whole number when in reality, 8 months out of the year there is an extra hour per day
   }

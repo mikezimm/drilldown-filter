@@ -69,6 +69,8 @@ export interface IDrilldownWebPartProps {
   showCatCounts: boolean;
   showSummary: boolean;
 
+  stats: string;
+
   newMap?: any[];
 
   showDisabled?: boolean;
@@ -329,6 +331,7 @@ private _filterBy: any;
         updateRefinersOnTextSearch: this.properties.updateRefinersOnTextSearch ? this.properties.updateRefinersOnTextSearch : false,
 
         rules: stringRules,
+        stats: this.properties.stats,
 
         allLoaded: true,
 
@@ -585,7 +588,7 @@ private _filterBy: any;
      */
     let updateOnThese = [
       'setSize','setTab','otherTab','setTab','otherTab','setTab','otherTab','setTab','otherTab',
-      'parentListFieldTitles','progress','UpdateTitles','parentListTitle','childListTitle','parentListWeb','childListWeb'
+      'parentListFieldTitles','progress','UpdateTitles','parentListTitle','childListTitle','parentListWeb','childListWeb', 'stats'
     ];
     //alert('props updated');
     console.log('onPropertyPaneFieldChanged:', propertyPath, oldValue, newValue);

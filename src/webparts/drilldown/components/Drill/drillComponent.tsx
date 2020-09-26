@@ -14,7 +14,7 @@ import "@pnp/sp/webs";
 
 import { IContentsListInfo, IMyListInfo, IServiceLog, IContentsLists } from '../../../../services/listServices/listTypes'; //Import view arrays for Time list
 
-import { doesObjectExistInArray, addItemToArrayIfItDoesNotExist } from '../../../../services/arrayServices';
+import { convertNumberArrayToRelativePercents, doesObjectExistInArray, addItemToArrayIfItDoesNotExist } from '../../../../services/arrayServices';
 
 import { ITheTime, weekday3, monthStr3 } from '../../../../services/dateServices';
 
@@ -31,7 +31,7 @@ import { createAdvancedContentChoices } from '../fields/choiceFieldBuilder';
 
 import { IContentsToggles, makeToggles } from '../fields/toggleFieldBuilder';
 
-import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef } from '../IReUsableInterfaces';
+import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef, IRefinerStat, ICSSChartSeries, ICSSChartTypes } from '../IReUsableInterfaces';
 
 import { createLink } from '../HelpInfo/AllLinks';
 
@@ -63,6 +63,7 @@ import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp
 
 import { unstable_renderSubtreeIntoContainer } from 'react-dom';
 
+import Cssreactbarchart from '../CssCharts/Cssreactbarchart';
 
 export type IRefinerStyles = 'pivot' | 'commandBar' | 'other';
 
@@ -83,7 +84,8 @@ export interface IDrillWeb extends Partial<IPickedWebBasic> {
     webURL?: string;
     refiners: string[]; //String of Keys representing the static name of the column used for drill downs
     emptyRefiner: string;
-    refinerRules: IRefinerRules[][]; 
+    refinerRules: IRefinerRules[][];
+    refinerStats: IRefinerStat[];
   }
 
 export interface IMyPivCat {
@@ -123,6 +125,8 @@ export interface IDrillItemInfo extends Partial<any>{
     editor: IUser;
 
     refiners: IItemRefiners; //String of Keys representing the static name of the column used for drill downs
+
+    Id: any;
 
 }
 
@@ -186,6 +190,7 @@ export interface IDrillDownProps {
     progress: IMyProgress;
     
     rules: string;
+    stats: string;
 
     WebpartHeight?:  number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
     WebpartWidth?:   number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
@@ -214,6 +219,8 @@ export interface IStat {
     val2?: any;
     result?: string;
 }
+
+export const RefinerChartTypes : ICSSChartTypes[] = ['stacked-column-labels', 'pareto-dec'];
 
 export interface IDrillDownState {
 
@@ -253,7 +260,7 @@ export interface IDrillDownState {
     WebpartHeight?:  number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
     WebpartWidth?:   number;    //Size courtesy of https://www.netwoven.com/2018/11/13/resizing-of-spfx-react-web-parts-in-different-scenarios/
 
-    refinerObj: IRefiners;
+    refinerObj: IRefinerLayer;
     showDisabled?: boolean;
 
     pivotCats: IMyPivCat[][];
@@ -291,14 +298,14 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             }
         });
 
-        console.log('getAppropriateViewFields BEST Width:', maxViewWidth );
+ //       console.log('getAppropriateViewFields BEST Width:', maxViewWidth );
 
         let avgWidth = result.length > 0 ? currentWidth/result.length : 100;
         let completeResult = result.map( f => {
 
             let thisField = f;
             let minWidth = thisField.minWidth ? thisField.minWidth : avgWidth;
-            let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;        
+            let maxWidth = thisField.maxWidth ? thisField.maxWidth : minWidth  + 100;
             if ( thisField.minWidth === undefined ) { thisField.minWidth = minWidth; }
             if ( thisField.maxWidth === undefined ) { thisField.maxWidth = maxWidth; }
             if ( thisField.isResizable === undefined ) { thisField.isResizable = true; }
@@ -306,7 +313,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             return thisField;
         });
 
-        console.log('getAppropriateViewFields:', completeResult);
+        //console.log('getAppropriateViewFields:', completeResult);
         return completeResult;
 
     }
@@ -337,7 +344,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
                 maxViewWidth = vd.minWidth;
             }
         });
-        console.log('includeDetails: ', result);
+        //console.log('includeDetails: ', result);
         return result;
 
     }
@@ -347,13 +354,64 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         try {
             emptyRules = JSON.parse(rules);
         } catch(e) {
+            alert('createEmptyRefinerRules: ' + e);
             emptyRules = undefined;
         }
 
         return emptyRules;
     }
 
-    private createDrillList(webURL: string, name: string, isLibrary: boolean, refiners: string[], rules: string, title: string = null) {
+    private buildSummaryCountCharts( title: string, refinerObj: IRefinerLayer , chartTypes: ICSSChartTypes[] ) {
+        let resultSummary = null;
+
+        let labels = refinerObj.childrenKeys ;
+        let counts = refinerObj.childrenMultiCounts;
+
+        let chartKey : string = labels.join('') + counts.join('');
+
+//        console.log('buildSummaryCountCharts labels:', labels );
+//        console.log('buildSummaryCountCharts counts:', counts );
+
+        let chartData : ICSSChartSeries = {
+            title: title,
+            labels: labels,
+            chartTypes: chartTypes,
+            barValueAsPercent: false,
+
+            //The string value here must match the object key below
+            barValues: 'val1',
+            val1: counts ,
+            key: chartKey,
+
+            stylesChart: { paddingBottom: 0, marginBottom: 0, marginTop: 0},
+            
+        };
+//        console.log('2 Creating Chart data: ',labels );
+//        console.log('2 Creating Chart data: ',counts );
+
+        resultSummary = 
+        <Cssreactbarchart 
+            chartData = { [chartData] }
+        ></Cssreactbarchart>;
+
+        return resultSummary;
+
+    }
+
+    private createRefinerRuleCalcs( calcs: string ) {
+        let theCalcs : any = null;
+        try {
+            calcs = calcs.replace(/\\\"/g,'"').replace(/\\'"/g,"'"); //Replace any cases where I copied the hashed characters from JSON file directly.
+            theCalcs = JSON.parse(calcs);
+        } catch(e) {
+            alert('createRefinerRuleCalcs: ' + e);
+            theCalcs = [];
+        }
+
+        return theCalcs;
+    }
+
+    private createDrillList(webURL: string, name: string, isLibrary: boolean, refiners: string[], rules: string, stats: string, title: string = null) {
 
         let list: IDrillList = {
             title: title,
@@ -364,7 +422,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             refiners: refiners,
             emptyRefiner: 'Unknown',
             refinerRules: this.createEmptyRefinerRules( rules ),
-            
+            refinerStats: this.createRefinerRuleCalcs( stats ),
         };
 
         return list;
@@ -376,7 +434,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         /**
          * This is copied later in code when you have to call the data in case something changed.
          */
-        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, '');
+        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, this.props.stats, '');
         let errMessage = drillList.refinerRules === undefined ? 'Invalid Rule set: ' +  this.props.rules : '';
         if ( drillList.refinerRules === undefined ) { drillList.refinerRules = [[],[],[]] ; } 
 
@@ -415,7 +473,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 
             progress: null,
 
-            refinerObj: {childrenKeys: this.props.refiners, childrenObjs: [] , multiCount: 0, itemCount: 0 },
+            refinerObj: {thisKey: '', childrenKeys: this.props.refiners, childrenObjs: [], childrenCounts: [], childrenMultiCounts: [] , multiCount: 0, itemCount: 0 },
             showDisabled: this.props.showDisabled ? this.props.showDisabled : false,
 
             pivotCats: [],
@@ -454,7 +512,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 public componentDidUpdate(prevProps){
 
     let rebuildPart = false;
-    console.log('DIDUPDATE setting Progress:', this.props.progress);
+//   console.log('DIDUPDATE setting Progress:', this.props.progress);
     if (this.props.progress !== prevProps.progress) {  rebuildPart = true ; }
 
     if ( JSON.stringify(prevProps.refiners) !== JSON.stringify(this.props.refiners )) {
@@ -507,6 +565,17 @@ public componentDidUpdate(prevProps){
 
             let toggleTipsButton = createIconButton('Help','Toggle Tips',this.toggleTips.bind(this), null, null );
 
+            /***
+             *    d888888b d8b   db d88888b  .d88b.       d8888b.  .d8b.   d888b  d88888b 
+             *      `88'   888o  88 88'     .8P  Y8.      88  `8D d8' `8b 88' Y8b 88'     
+             *       88    88V8o 88 88ooo   88    88      88oodD' 88ooo88 88      88ooooo 
+             *       88    88 V8o88 88~~~   88    88      88~~~   88~~~88 88  ooo 88~~~~~ 
+             *      .88.   88  V888 88      `8b  d8'      88      88   88 88. ~8~ 88.     
+             *    Y888888P VP   V8P YP       `Y88P'       88      YP   YP  Y888P  Y88888P 
+             *                                                                            
+             *                                                                            
+             */
+
             const infoPage = <div>
             <InfoPage 
                 allLoaded={ true }
@@ -519,6 +588,17 @@ public componentDidUpdate(prevProps){
             let errMessage = this.state.errMessage === '' ? null : <div>
                 { this.state.errMessage }
             </div>;
+
+            /***
+             *    .d8888. d88888b  .d8b.  d8888b.  .o88b. db   db      d8888b.  .d88b.  db    db 
+             *    88'  YP 88'     d8' `8b 88  `8D d8P  Y8 88   88      88  `8D .8P  Y8. `8b  d8' 
+             *    `8bo.   88ooooo 88ooo88 88oobY' 8P      88ooo88      88oooY' 88    88  `8bd8'  
+             *      `Y8b. 88~~~~~ 88~~~88 88`8b   8b      88~~~88      88~~~b. 88    88  .dPYb.  
+             *    db   8D 88.     88   88 88 `88. Y8b  d8 88   88      88   8D `8b  d8' .8P  Y8. 
+             *    `8888Y' Y88888P YP   YP 88   YD  `Y88P' YP   YP      Y8888P'  `Y88P'  YP    YP 
+             *                                                                                   
+             *                                                                                   
+             */
 
             /*https://developer.microsoft.com/en-us/fabric#/controls/web/searchbox*/
             let searchBox =  
@@ -540,8 +620,17 @@ public componentDidUpdate(prevProps){
 
             const stackPageTokens: IStackTokens = { childrenGap: 10 };
 
-            let toggles = <div style={{ float: 'right' }}> { makeToggles(this.getPageToggles()) } </div>;
-
+            /***
+             *    d8888b. d88888b d88888b d888888b d8b   db d88888b d8888b. .d8888. 
+             *    88  `8D 88'     88'       `88'   888o  88 88'     88  `8D 88'  YP 
+             *    88oobY' 88ooooo 88ooo      88    88V8o 88 88ooooo 88oobY' `8bo.   
+             *    88`8b   88~~~~~ 88~~~      88    88 V8o88 88~~~~~ 88`8b     `Y8b. 
+             *    88 `88. 88.     88        .88.   88  V888 88.     88 `88. db   8D 
+             *    88   YD Y88888P YP      Y888888P VP   V8P Y88888P 88   YD `8888Y' 
+             *                                                                      
+             *                                                                      
+             */
+                        
             //                <div> { resizePage0 } </div>
             let showRefiner0 = true;
             let showRefiner1 = this.state.searchMeta.length >= 1 && this.state.searchMeta[0] !== 'All' ? true : false;
@@ -604,6 +693,17 @@ public componentDidUpdate(prevProps){
                 { errMessage }</div>;
             } else {
 
+                /***
+                 *    db      d888888b .d8888. d888888b      d888888b d888888b d88888b .88b  d88. .d8888. 
+                 *    88        `88'   88'  YP `~~88~~'        `88'   `~~88~~' 88'     88'YbdP`88 88'  YP 
+                 *    88         88    `8bo.      88            88       88    88ooooo 88  88  88 `8bo.   
+                 *    88         88      `Y8b.    88            88       88    88~~~~~ 88  88  88   `Y8b. 
+                 *    88booo.   .88.   db   8D    88           .88.      88    88.     88  88  88 db   8D 
+                 *    Y88888P Y888888P `8888Y'    YP         Y888888P    YP    Y88888P YP  YP  YP `8888Y' 
+                 *                                                                                        
+                 *                                                                                        
+                 */
+
                 let blueBar = this.state.searchMeta.map( m => { return <span><span style={{ paddingLeft: 0 }}> {'>'} </span><span style={{ paddingLeft: 10, paddingRight: 20 }}> { m } </span></span>; });
 
 
@@ -628,33 +728,95 @@ public componentDidUpdate(prevProps){
                     includeDetails= { viewDefMode }
                 ></ReactListItems>;
 
+
+                /***
+                 *    .d8888. db    db .88b  d88. .88b  d88.  .d8b.  d8888b. db    db 
+                 *    88'  YP 88    88 88'YbdP`88 88'YbdP`88 d8' `8b 88  `8D `8b  d8' 
+                 *    `8bo.   88    88 88  88  88 88  88  88 88ooo88 88oobY'  `8bd8'  
+                 *      `Y8b. 88    88 88  88  88 88  88  88 88~~~88 88`8b      88    
+                 *    db   8D 88b  d88 88  88  88 88  88  88 88   88 88 `88.    88    
+                 *    `8888Y' ~Y8888P' YP  YP  YP YP  YP  YP YP   YP 88   YD    YP    
+                 *                                                                    
+                 *                                                                    
+                 */
+
+                let summaryCharts = [];
+                if ( this.state.showSummary === true ) {
+                    summaryCharts.push( this.buildSummaryCountCharts( this.props.refiners[0], this.state.refinerObj, RefinerChartTypes ) );
+
+                    if ( this.state.searchMeta[0] !== 'All' ) {
+
+                        let childIndex0 = this.state.refinerObj.childrenKeys.indexOf(this.state.searchMeta[0]);
+                        summaryCharts.push( this.buildSummaryCountCharts( this.props.refiners[1], this.state.refinerObj.childrenObjs[childIndex0], RefinerChartTypes ) );
+
+                        if ( this.state.searchMeta.length > 1 && this.state.searchMeta[1] !== 'All' ) {
+
+                            let childIndex1 = this.state.refinerObj.childrenObjs[childIndex0].childrenKeys.indexOf(this.state.searchMeta[1]);
+                            summaryCharts.push( this.buildSummaryCountCharts( this.props.refiners[2], this.state.refinerObj.childrenObjs[childIndex0].childrenObjs[childIndex1],  RefinerChartTypes ) );
+
+                        }
+
+                    }
+
+                } else { summaryCharts = null ; }
+
+
+                /***
+                 *    d888888b  .d88b.   d888b   d888b  db      d88888b .d8888. 
+                 *    `~~88~~' .8P  Y8. 88' Y8b 88' Y8b 88      88'     88'  YP 
+                 *       88    88    88 88      88      88      88ooooo `8bo.   
+                 *       88    88    88 88  ooo 88  ooo 88      88~~~~~   `Y8b. 
+                 *       88    `8b  d8' 88. ~8~ 88. ~8~ 88booo. 88.     db   8D 
+                 *       YP     `Y88P'   Y888P   Y888P  Y88888P Y88888P `8888Y' 
+                 *                                                              
+                 *                                                              
+                 */
+
+
+                let toggles = <div style={{ float: 'right' }}> { makeToggles(this.getPageToggles()) } </div>;
+
+
+
+                /***
+                 *    d888888b db   db d888888b .d8888.      d8888b.  .d8b.   d888b  d88888b 
+                 *    `~~88~~' 88   88   `88'   88'  YP      88  `8D d8' `8b 88' Y8b 88'     
+                 *       88    88ooo88    88    `8bo.        88oodD' 88ooo88 88      88ooooo 
+                 *       88    88~~~88    88      `Y8b.      88~~~   88~~~88 88  ooo 88~~~~~ 
+                 *       88    88   88   .88.   db   8D      88      88   88 88. ~8~ 88.     
+                 *       YP    YP   YP Y888888P `8888Y'      88      YP   YP  Y888P  Y88888P 
+                 *                                                                           
+                 *                                                                           
+                 */
+
                 thisPage = <div className={styles.contents}>
                     <div className={stylesD.drillDown}>
                         <div className={styles.floatRight}>{ toggleTipsButton }</div>
                         <div className={ this.state.errMessage === '' ? styles.hideMe : styles.showErrorMessage  }>{ this.state.errMessage } </div>
-                            {  /* <p><mark>Check why picking Assists does not show Help as a chapter even though it's the only chapter...</mark></p> */ }
-                            <div className={( this.state.showTips ? '' : styles.hideMe )}>
-                                { infoPage }
-                            </div>
-                            <Stack horizontal={true} wrap={true} horizontalAlign={"space-between"} verticalAlign= {"center"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
-                                { searchBox } { toggles }
-                            </Stack>
-
-                            <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens} className={ stylesD.refiners }>{/* Stack for Buttons and Webs */}
-                                { refinersObjects  }
-                            </Stack>
-
-                            <div>
-
-                                <div className={ this.state.searchCount !== 0 ? styles.hideMe : styles.showErrorMessage  }>{ noInfo } </div>
-
-                                <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
-                                    { this.state.viewType === 'React' ? reactListItems : drillItems }
-                                    {   }
-                                </Stack>
-                            </div> { /* Close tag from above noInfo */}
+                        {  /* <p><mark>Check why picking Assists does not show Help as a chapter even though it's the only chapter...</mark></p> */ }
+                        <div className={( this.state.showTips ? '' : styles.hideMe )}>
+                            { infoPage }
                         </div>
-                    </div>;
+                        <Stack horizontal={true} wrap={true} horizontalAlign={"space-between"} verticalAlign= {"center"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
+                            { searchBox } { toggles }
+                        </Stack>
+
+                        <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens} className={ stylesD.refiners }>{/* Stack for Buttons and Webs */}
+                            { refinersObjects  }
+                        </Stack>
+
+                        <div> { summaryCharts } </div>
+
+                        <div>
+
+                            <div className={ this.state.searchCount !== 0 ? styles.hideMe : styles.showErrorMessage  }>{ noInfo } </div>
+
+                            <Stack horizontal={false} wrap={true} horizontalAlign={"stretch"} tokens={stackPageTokens}>{/* Stack for Buttons and Webs */}
+                                { this.state.viewType === 'React' ? reactListItems : drillItems }
+                                {   }
+                            </Stack>
+                        </div> { /* Close tag from above noInfo */}
+                    </div>
+                </div>;
 
                 if ( this.state.allItems.length === 0 ) {
                     thisPage = <div style={{ paddingBottom: 30 }}className={styles.contents}>
@@ -697,7 +859,7 @@ public componentDidUpdate(prevProps){
         /**
          * This is copied from constructor when you have to call the data in case something changed.
          */
-        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, '');
+        let drillList = this.createDrillList(this.props.webURL, this.props.listName, false, this.props.refiners, this.props.rules, this.props.stats, '');
         let errMessage = drillList.refinerRules === undefined ? 'Invalid Rule set: ' +  this.props.rules : '';
         if ( drillList.refinerRules === undefined ) { drillList.refinerRules = [[],[],[]] ; } 
 
@@ -705,7 +867,7 @@ public componentDidUpdate(prevProps){
 
     }
 
-    private addTheseItemsToState( drillList: IDrillList, allItems , errMessage : string, refinerObj: IRefiners ) {
+    private addTheseItemsToState( drillList: IDrillList, allItems , errMessage : string, refinerObj: IRefinerLayer ) {
 
         //let newFilteredItems : IDrillItemInfo[] = this.getNewFilteredItems( '', this.state.searchMeta, allItems, 0 );
         let pivotCats : any = [];
@@ -714,6 +876,13 @@ public componentDidUpdate(prevProps){
         let countTree: number[] = refinerObj.childrenObjs.map( o => { return o.itemCount; }) ;
 
         cmdCats.push ( this.convertRefinersToCMDs( ['All'],  refinerObj.childrenKeys, countTree, 0 , 0, refinerObj) );
+
+        console.log('addTheseItemsToState: refinerObj',refinerObj );
+        console.log('addTheseItemsToState: childrenKeys',refinerObj.childrenKeys );
+        console.log('addTheseItemsToState: childrenCounts',refinerObj.childrenCounts );
+        console.log('addTheseItemsToState: childrenMultiCounts',refinerObj.childrenMultiCounts );
+
+        console.log('addTheseItemsToState allItems: ', allItems);
 
         this.setState({
             allItems: allItems,
@@ -992,6 +1161,7 @@ public componentDidUpdate(prevProps){
     let thisMetaString = JSON.stringify( newMeta );
     let metaChanged = prevMetaString === thisMetaString ? false : true;
     let refinerObj = this.state.refinerObj;
+
     /**
      * example of newMeta:
      * Clicking on 1st refiner:     newMeta: ["Daily"]
@@ -1041,7 +1211,7 @@ public componentDidUpdate(prevProps){
     }
 
     if ( searchType === 'text' && this.props.updateRefinersOnTextSearch === true ) {
-        refinerObj = buildRefinersObject(newFilteredItems);
+        refinerObj = buildRefinersObject(newFilteredItems, this.state.drillList );
         pivotCats = [];
         cmdCats = [];
         pivotCats.push ( refinerObj.childrenKeys.map( r => { return this.createThisPivotCat(r,'',0); }));
@@ -1163,7 +1333,7 @@ public componentDidUpdate(prevProps){
      * @param layer  - this is the layer that was clicked on?
      * @param refLayer - this is the layer of this particular control
      */
-    private convertRefinersToCMDs( newMeta: string[], refiners: string[], thisCount: number[], layer: number, refLayer: number, refinerObj: IRefiners ) {
+    private convertRefinersToCMDs( newMeta: string[], refiners: string[], thisCount: number[], layer: number, refLayer: number, refinerObj: IRefinerLayer ) {
         let result = [];
 
         //Get sum of array of numbers:  https://codeburst.io/javascript-arrays-finding-the-minimum-maximum-sum-average-values-f02f1b0ce332

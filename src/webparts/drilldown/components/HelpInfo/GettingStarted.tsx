@@ -99,7 +99,7 @@ public constructor(props:IGettingStartedProps){
     public render(): React.ReactElement<IGettingStartedProps> {
 
         if ( this.props.allLoaded && this.props.showInfo ) {
-            console.log('infoPages.tsx', this.props, this.state);
+            //console.log('infoPages.tsx', this.props, this.state);
 
 /***
  *              d888888b db   db d888888b .d8888.      d8888b.  .d8b.   d888b  d88888b 
