@@ -49,11 +49,14 @@ export function makeChartData( qty: number, label: string, chartTypes : ICSSChar
   const arrSum = randomNums.reduce((a,b) => a + b, 0);
   let percents = randomNums.map( v => { return (v / arrSum * 100 ) ; });
 
+  let chartKey : string = randomTitles.join('') + randomNums.join('');
+
   if ( chartTypes === [] ) { chartTypes = CSSChartTypes; }
 
   let chartData: ICSSChartSeries = {
     title: label,
     activeType: getRandomInt( 0,CSSChartTypes.length -1 ),
+    key: chartKey,
     chartTypes: chartTypes,
     labels: randomTitles,
     val1: randomNums,
@@ -85,35 +88,49 @@ const randomPallets = [ColorsBlue, ColorsBrown, ColorsGray, ColorsGreen, ColorsR
 
 export default class Cssreactbarchart extends React.Component<ICssreactbarchartProps, ICssreactbarchartState> {
 
+  private getCurrentChartData( chartDataB4 : ICSSChartSeries[] ) {
+
+    let chartDataAfter : ICSSChartSeries[] = [] ;
+
+    if ( chartDataB4 && chartDataB4.length > 0 ) {
+      chartDataB4.map( cd => {
+        chartDataAfter.push( JSON.parse( JSON.stringify( cd ) ) ) ;
+      });
+      //set activeType
+      chartDataAfter.map( cd => { cd.activeType = 0; });
+
+    } else { 
+      chartDataAfter.push( makeChartData(getRandomInt(5 , 30), 'Category') ) ;
+      chartDataAfter.push( makeChartData(getRandomInt(5 , 30), 'Item') ) ;
+      chartDataAfter.push( makeChartData(getRandomInt(5 , 20), 'Product') ) ;
+    }
+
+    return chartDataAfter;
+
+  }
+
+
   public constructor(props:ICssreactbarchartProps){
     super(props);
 
-    let chartData : ICSSChartSeries[] = [] ;
+    let chartData : ICSSChartSeries[] = this.getCurrentChartData(this.props.chartData);
 
-    if ( this.props.chartData && this.props.chartData.length > 0 ) {
-      this.props.chartData.map( cd => {
-        chartData.push( JSON.parse( JSON.stringify( cd ) ) ) ;
-      });
-      //set activeType
-      chartData.map( cd => { cd.activeType = 0; });
-
-    } else { 
-      chartData.push( makeChartData(getRandomInt(5 , 30), 'Category') ) ;
-      chartData.push( makeChartData(getRandomInt(5 , 30), 'Item') ) ;
-      chartData.push( makeChartData(getRandomInt(5 , 20), 'Product') ) ;
-    }
+    let chartKeys = chartData.map( cd => {
+      return cd.key;
+    }).join('');
 
     let useProps = this.props.chartData !== null && this.props.chartData !== undefined && this.props.chartData.length > 0 ? true : false;
 
     this.state = { 
       chartData: chartData,
       useProps: useProps,
+      chartKeys: chartKeys,
     };
 
   }
   
   public componentDidMount() {
-    this._updateStateOnPropsChange();
+//    this._updateStateOnPropsChange();
     console.log('Mounted!');
   }
 
@@ -134,9 +151,19 @@ public componentDidUpdate(prevProps){
     let rebuildPart = false;
     console.log('DIDUPDATE setting chartData:', this.props.chartData);
 
-    if ( JSON.stringify(prevProps.chartData) !== JSON.stringify(this.props.chartData )) {
+    let prevChartKeys = prevProps.chartData.map( cd => {
+      return cd.key;
+    }).join('');
+
+    let newChartKeys = this.props.chartData.map( cd => {
+      return cd.key;
+    }).join('');
+
+    if ( prevChartKeys !== newChartKeys ) {
         rebuildPart = true;
     }
+    console.log('DIDUPDATE setting chartData:', rebuildPart );
+
     if (rebuildPart === true) {
       this._updateStateOnPropsChange();
     }
@@ -181,9 +208,11 @@ public componentDidUpdate(prevProps){
      *                                                                                            
      */
 
+
     let chartIdx = -1;
     let charts = chartData.map( cdO => {
       chartIdx ++ ;
+      console.log('buildingLabels:', cdO.labels.join(', '));
       let selectedChartID = chartIdx.toString();
 
       //2020-09-24:  Added this because the value array was getting mysteriously overwritten to nulls all the time.
@@ -392,7 +421,7 @@ public componentDidUpdate(prevProps){
       thisRowStyle.fontWeight = '600';
 
       if ( stacked === false ) { 
-        thisRowStyle.maxWidth = '450px';
+        thisRowStyle.maxWidth = '80%';
         thisRowStyle.marginBottom = null;
       }
       
@@ -493,6 +522,20 @@ public componentDidUpdate(prevProps){
 
     private _updateStateOnPropsChange(): void {
 
+      let chartData : ICSSChartSeries[] = this.getCurrentChartData(this.props.chartData);
+
+      let chartKeys = chartData.map( cd => {
+        return cd.key;
+      }).join('');
+  
+      let useProps = this.props.chartData !== null && this.props.chartData !== undefined && this.props.chartData.length > 0 ? true : false;
+  
+      this.setState({
+        chartData: chartData,
+        useProps: useProps,
+        chartKeys: chartKeys,
+      });  
+      
     }
 
 }

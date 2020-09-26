@@ -260,6 +260,7 @@ export interface IMyFonts{
     labels: any[];
     chartTypes: ICSSChartTypes[];
     activeType?: number;
+    key: string;
 
     barValueAsPercent? : boolean;
     height?: number | string ; //This would be horizonal bar height... one horizontal layer

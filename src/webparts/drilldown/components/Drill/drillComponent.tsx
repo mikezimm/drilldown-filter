@@ -367,6 +367,11 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         let labels = refinerObj.childrenKeys ;
         let counts = refinerObj.childrenMultiCounts;
 
+        let chartKey : string = labels.join('') + counts.join('');
+
+//        console.log('buildSummaryCountCharts labels:', labels );
+//        console.log('buildSummaryCountCharts counts:', counts );
+
         let chartData : ICSSChartSeries = {
             title: title,
             labels: labels,
@@ -376,6 +381,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
             //The string value here must match the object key below
             barValues: 'val1',
             val1: counts ,
+            key: chartKey,
 
             stylesChart: { paddingBottom: 0, marginBottom: 0, marginTop: 0},
             
@@ -506,7 +512,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
 public componentDidUpdate(prevProps){
 
     let rebuildPart = false;
-    console.log('DIDUPDATE setting Progress:', this.props.progress);
+//   console.log('DIDUPDATE setting Progress:', this.props.progress);
     if (this.props.progress !== prevProps.progress) {  rebuildPart = true ; }
 
     if ( JSON.stringify(prevProps.refiners) !== JSON.stringify(this.props.refiners )) {
@@ -742,7 +748,7 @@ public componentDidUpdate(prevProps){
 
                         let childIndex0 = this.state.refinerObj.childrenKeys.indexOf(this.state.searchMeta[0]);
                         summaryCharts.push( this.buildSummaryCountCharts( this.props.refiners[1], this.state.refinerObj.childrenObjs[childIndex0], RefinerChartTypes ) );
-                        
+
                         if ( this.state.searchMeta.length > 1 && this.state.searchMeta[1] !== 'All' ) {
 
                             let childIndex1 = this.state.refinerObj.childrenObjs[childIndex0].childrenKeys.indexOf(this.state.searchMeta[1]);
