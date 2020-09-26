@@ -3,7 +3,7 @@
   "solution": {
     "name": "drilldown-filter-client-side-solution",
     "id": "d4057ae5-a260-451d-b481-b98442c72277",
-    "version": "1.0.2.0",
+    "version": "1.0.2.1",
     "includeClientSideAssets": true,
     "isDomainIsolated": false,
     "developer": {
