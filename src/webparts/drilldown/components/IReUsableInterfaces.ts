@@ -250,14 +250,17 @@ export interface IMyFonts{
     fontStyle?: string;
   }
 
+  export type ICSSChartTypes = 'pareto-asc' | 'pareto-dec' | 'pareto-labels' | 'stacked-column-labels' | 'stacked-column-dec' | 'stacked-column-asc';
+  export const CSSChartTypes : ICSSChartTypes[] = ['pareto-asc' , 'pareto-dec' , 'pareto-labels' , 'stacked-column-labels' , 'stacked-column-dec' , 'stacked-column-asc'];
+
+  export type ISeriesSort = 'asis' | 'labels' | 'asc' | 'dec' | string ;
+
   export interface ICSSChartSeries {
     title: string;
     labels: any[];
-    type?: 'bar' | 'other';
-    chartType: 'bar' | 'other';
+    chartTypes: ICSSChartTypes[];
+    activeType?: number;
 
-    stacked?: boolean;
-    sortStack?: 'asc' | 'dec' | false ;
     barValueAsPercent? : boolean;
     height?: number | string ; //This would be horizonal bar height... one horizontal layer
     barValues?: 'val1' | 'sums' | 'avgs' | 'percents' | string ;

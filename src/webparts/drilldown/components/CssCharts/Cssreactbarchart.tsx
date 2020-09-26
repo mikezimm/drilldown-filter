@@ -1,11 +1,11 @@
 import * as React from 'react';
 import styles from './Cssreactbarchart.module.scss';
-import { ICssreactbarchartProps } from './ICssreactbarchartProps';
+import { ICssreactbarchartProps, ICssreactbarchartState } from './ICssreactbarchartProps';
 
 import { getRandomInt, getRandomFromArray, generateVals, generateTitles, randomDate, getRandomChance } from '../../../../services/randomServices';
 import { sortKeysByOtherKey, convertNumberArrayToRelativePercents } from '../../../../services/arrayServices';
 
-import { ICSSChartSeries } from '../IReUsableInterfaces';
+import { ICSSChartSeries, ICSSChartTypes, CSSChartTypes, ISeriesSort } from '../IReUsableInterfaces';
 
 import stylesC from './cssChart.module.scss';
 
@@ -42,21 +42,27 @@ export interface ISimpleData {
 // makeChartData ,
 
 
-export function makeChartData( qty: number, label: string ) {
+export function makeChartData( qty: number, label: string, chartTypes : ICSSChartTypes[] = [] ) {
 
   let randomNums = generateVals( qty, 35, 90 );
   let randomTitles = generateTitles( label, qty );
   const arrSum = randomNums.reduce((a,b) => a + b, 0);
   let percents = randomNums.map( v => { return (v / arrSum * 100 ) ; });
+
+  if ( chartTypes === [] ) { chartTypes = CSSChartTypes; }
+
   let chartData: ICSSChartSeries = {
     title: label,
-    chartType: 'bar',
+    activeType: getRandomInt( 0,CSSChartTypes.length -1 ),
+    chartTypes: chartTypes,
     labels: randomTitles,
     val1: randomNums,
     percents: percents,
     sum: arrSum,
   };
+
   return chartData;
+
 }
 
 /***
@@ -71,19 +77,38 @@ export function makeChartData( qty: number, label: string ) {
  */
 
 
-const chartTypeDef: 'bar' | 'other' = 'bar';
-const stackedDef: boolean = false;
-const sortStackDef: 'asc' | 'dec' | false = undefined;
 const barValueAsPercentDef : boolean = false;
 const heightDef: number | string = "50px"; //This would be horizonal bar height... one horizontal layer
 const barValuesDef: 'val1' | 'sums' | 'avgs' | 'percents' = 'val1';
 const titleLocationDef: 'top' | 'side' = 'top';
 const randomPallets = [ColorsBlue, ColorsBrown, ColorsGray, ColorsGreen, ColorsRed];
 
-export default class Cssreactbarchart extends React.Component<ICssreactbarchartProps, {}> {
+export default class Cssreactbarchart extends React.Component<ICssreactbarchartProps, ICssreactbarchartState> {
 
   public constructor(props:ICssreactbarchartProps){
     super(props);
+
+    let chartData : ICSSChartSeries[] = [] ;
+
+    if ( this.props.chartData && this.props.chartData.length > 0 ) {
+      this.props.chartData.map( cd => {
+        chartData.push( JSON.parse( JSON.stringify( cd ) ) ) ;
+      });
+      //set activeType
+      chartData.map( cd => { cd.activeType = 0; });
+
+    } else { 
+      chartData.push( makeChartData(getRandomInt(5 , 30), 'Category') ) ;
+      chartData.push( makeChartData(getRandomInt(5 , 30), 'Item') ) ;
+      chartData.push( makeChartData(getRandomInt(5 , 20), 'Product') ) ;
+    }
+
+    let useProps = this.props.chartData !== null && this.props.chartData !== undefined && this.props.chartData.length > 0 ? true : false;
+
+    this.state = { 
+      chartData: chartData,
+      useProps: useProps,
+    };
 
   }
   
@@ -130,8 +155,6 @@ public componentDidUpdate(prevProps){
 
   public render(): React.ReactElement<ICssreactbarchartProps> {
 
-    let useProps = this.props.chartData !== null && this.props.chartData !== undefined && this.props.chartData.length > 0 ? true : false;
- 
     /***
  *    .d8888.  .d8b.  .88b  d88. d8888b. db      d88888b      d8888b.  .d8b.  d888888b  .d8b.  
  *    88'  YP d8' `8b 88'YbdP`88 88  `8D 88      88'          88  `8D d8' `8b `~~88~~' d8' `8b 
@@ -145,26 +168,7 @@ public componentDidUpdate(prevProps){
 
     // Styles & Chart code for chart compliments of:  https://codepen.io/richardramsay/pen/ZKmQJv?editors=1010
 
-    let chartData: ICSSChartSeries[] = [];
-
-    if ( useProps === false ) {
-      chartData.push( makeChartData(getRandomInt(5 , 30), 'Category') ) ;
-      chartData.push( makeChartData(getRandomInt(5 , 30), 'Item') ) ;
-      chartData.push( makeChartData(getRandomInt(5 , 20), 'Product') ) ;
-
-    } else {
-      chartData = this.props.chartData;
-
-    }
-
-    let stacked = useProps === true && this.props.chartData[0].stacked ? this.props.chartData[0].stacked : getRandomFromArray([true,false]);
-
-//    console.log('chartData Before: ', chartData );
-    if ( stacked === false ) {
-      //Re-sort all arrays by same key:
-
-    }
-
+    let chartData: ICSSChartSeries[] = this.state.chartData;
 
     /***
      *    db       .d88b.   .d88b.  d8888b.       .o88b. db   db  .d8b.  d8888b. d888888b .d8888. 
@@ -177,12 +181,57 @@ public componentDidUpdate(prevProps){
      *                                                                                            
      */
 
-    
+    let chartIdx = -1;
     let charts = chartData.map( cdO => {
+      chartIdx ++ ;
+      let selectedChartID = chartIdx.toString();
 
       //2020-09-24:  Added this because the value array was getting mysteriously overwritten to nulls all the time.
       cdO[cdO.barValues] = JSON.parse(JSON.stringify(cdO[cdO.barValues]));
       cdO.percents = convertNumberArrayToRelativePercents(cdO[cdO.barValues]);
+
+      let sortOrder : ISeriesSort = 'asis';
+      let stacked : boolean = null;
+      let sortKey : ISeriesSort = null;
+      let barValues : string = cdO.barValues;
+
+      if ( this.state.useProps !== true ) {
+
+      }
+      
+      let activeChartType = cdO.chartTypes[cdO.activeType] ;
+      if ( activeChartType === 'pareto-asc' ) {
+        sortOrder = 'asc' ;
+        sortKey = barValues;
+        stacked = false;
+
+      } else if ( activeChartType === 'pareto-dec' ) {
+        sortOrder = 'dec' ;
+        sortKey = barValues;
+        stacked = false;
+
+      } else if ( activeChartType === 'pareto-labels' ) {
+        sortOrder = 'asc' ;
+        sortKey = 'labels';
+        stacked = false;
+
+      } else if ( activeChartType === 'stacked-column-asc' ) {
+        sortOrder = 'asc' ;
+        sortKey = barValues;
+        stacked = true;
+
+      } else if ( activeChartType === 'stacked-column-dec' ) {
+        sortOrder = 'dec' ;
+        sortKey = barValues;
+        stacked = true;
+
+      } else if ( activeChartType === 'stacked-column-labels' ) {
+        sortOrder = 'asc' ;
+        sortKey = 'labels';
+        stacked = true;
+
+      }
+
 
       /***
        *    .d8888. d888888b db    db db      d88888b      d888888b d8b   db d888888b d888888b d888888b  .d8b.  db      d888888b d88888D  .d8b.  d888888b d888888b  .d88b.  d8b   db 
@@ -206,16 +255,14 @@ public componentDidUpdate(prevProps){
       /**
        * Set chart defaults
        */
-      let chartType = useProps === true && cdO ? cdO.type : chartTypeDef;
 
-      let sortStack = useProps === true && cdO.sortStack !== undefined ? cdO.sortStack : getRandomFromArray([false,'asc','dec']);
-      let barValueAsPercent = useProps === true && cdO.barValueAsPercent !== undefined ? cdO.barValueAsPercent : getRandomFromArray([true,false]);
-      let height = useProps === true && cdO.height ? cdO.height : heightDef;
-      let barValues = useProps === true && cdO.barValues ? cdO.barValues : barValuesDef;
-      let titleLocation = useProps === true && cdO.titleLocation ? cdO.titleLocation : titleLocationDef;
+//      let sortOrder = this.state.useProps === true && cdO.sortOrder !== undefined ? cdO.sortOrder : getRandomFromArray([false,'asc','dec']);
+      let barValueAsPercent = this.state.useProps === true && cdO.barValueAsPercent !== undefined ? cdO.barValueAsPercent : getRandomFromArray([true,false]);
+      let height = this.state.useProps === true && cdO.height ? cdO.height : heightDef;
+      let titleLocation = this.state.useProps === true && cdO.titleLocation ? cdO.titleLocation : titleLocationDef;
       let stateHeight = stacked === false ? "40px" : height;
       let randomPallet = getRandomFromArray(randomPallets);
-      let randomizeColors = useProps === true && cdO.barColors ? false : true ;
+      let randomizeColors = this.state.useProps === true && cdO.barColors ? false : true ;
 
       if ( stacked === false && cdO[barValues].length > 15 ) { stateHeight = '20px'; }
       else if ( stacked === false && cdO[barValues].length > 8 ) { stateHeight = '30px'; }
@@ -223,11 +270,10 @@ public componentDidUpdate(prevProps){
 
       let cd : ICSSChartSeries = null;
 
-      if ( stacked === false || sortStack === 'asc' || sortStack === 'dec' ) {
-        let sortOrder : 'asc' | 'dec' = stacked === false || sortStack === 'dec' ? 'dec' : 'asc';
+      if ( sortOrder !== 'asis' ) {
         let otherKeysToSort = ['labels', barValues];
         if ( cdO.percents !== undefined ) { otherKeysToSort.push('percents') ; }
-        cd = sortKeysByOtherKey( cdO, barValues, sortOrder, 'number', otherKeysToSort );
+        cd = sortKeysByOtherKey( cdO, sortKey, sortOrder, 'number', otherKeysToSort );
       } else {
         cd = cdO;
       }
@@ -327,7 +373,7 @@ public componentDidUpdate(prevProps){
 //        console.log('chartData valueStyle:', valueStyle );
 
         thisChart.push(
-          <span onClick={ this.onClick.bind(this) }className={ [stylesC.block, stylesC.innerShadow].join(' ') } style={ blockStyle } title={ cd.labels[i] } >
+          <span id= { selectedChartID } onClick={ this.onClick.bind(this) }className={ [stylesC.block, stylesC.innerShadow].join(' ') } style={ blockStyle } title={ cd.labels[i] } >
               <span className={ stylesC.value } style={ valueStyle } >{ barLabel }</span>
           </span>
         ) ;
@@ -393,23 +439,43 @@ public componentDidUpdate(prevProps){
 
   private onClick(item) {
 
-    return;
         //This sends back the correct pivot category which matches the category on the tile.
         let e: any = event;
         let value = 'TBD';
-    
+        let chartIdx = null;
         if ( e.target.innerText != '' ) {
           value = e.target.innerText;   
+          chartIdx = e.target.id;
+          if ( chartIdx === '' && item.currentTarget ) { chartIdx = item.currentTarget.id; }
+
         } else if ( item.currentTarget.innerText != '' ){
           value = item.currentTarget.innerText;
-      
+          chartIdx = item.currentTarget.id;
+          if ( chartIdx === '' && item.target ) { chartIdx = item.target.id; }
+
         }
     
-        console.log('clicked:  ' , value );
-        
-        this.setState({
+        console.log('clicked:  ' , chartIdx, value );
 
-        });
+        if ( this.state.useProps === true && chartIdx !== null ) {
+
+          let chartData = this.state.chartData;
+
+          console.log('Prev chart type:', chartData[chartIdx].chartTypes[ chartData[chartIdx].activeType ] );
+
+          let chartTypesCount = chartData[chartIdx].chartTypes.length;
+          let activeType = chartData[chartIdx].activeType;
+          let nextType =  chartTypesCount - 1 === activeType ? 0 : activeType + 1;
+          chartData[chartIdx].activeType = nextType;
+
+          console.log('Prev chart type:', chartData[chartIdx].chartTypes[ chartData[chartIdx].activeType ] );
+          
+          this.setState({
+            chartData: chartData,
+          });
+
+        }
+
   }
   /**   This is the legend code:
    *        <div className={ stylesC.xAxis } >

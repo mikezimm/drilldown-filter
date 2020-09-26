@@ -1,4 +1,6 @@
 
+import { ISeriesSort } from '../webparts/drilldown/components/IReUsableInterfaces';
+
 /**
  * This just takes an object, and returns a string of the Key and Value.
  * Used for logging
@@ -265,7 +267,7 @@ export function convertNumberArrayToRelativePercents( arr: number[] , percentsAs
     return result;
 }
 
-export function sortKeysByOtherKey( obj: any, sortKey: string, order: 'asc' | 'dec', dataType: 'number' | 'string', otherKeys: string[]) {
+export function sortKeysByOtherKey( obj: any, sortKey: ISeriesSort, order: ISeriesSort, dataType: 'number' | 'string', otherKeys: string[]) {
 
     let sortCopy : number[] | string[] = JSON.parse(JSON.stringify(obj[sortKey]));
   

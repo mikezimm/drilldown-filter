@@ -31,7 +31,7 @@ import { createAdvancedContentChoices } from '../fields/choiceFieldBuilder';
 
 import { IContentsToggles, makeToggles } from '../fields/toggleFieldBuilder';
 
-import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef, IRefinerStat, ICSSChartSeries } from '../IReUsableInterfaces';
+import { IPickedList, IPickedWebBasic, IMyPivots, IPivot,  ILink, IUser, IMyProgress, IMyIcons, IMyFonts, IChartSeries, ICharNote, IRefinerRules, RefineRuleValues, ICustViewDef, IRefinerStat, ICSSChartSeries, ICSSChartTypes } from '../IReUsableInterfaces';
 
 import { createLink } from '../HelpInfo/AllLinks';
 
@@ -220,6 +220,8 @@ export interface IStat {
     result?: string;
 }
 
+export const RefinerChartTypes : ICSSChartTypes[] = ['stacked-column-labels', 'pareto-dec'];
+
 export interface IDrillDownState {
 
     allowOtherSites?: boolean; //default is local only.  Set to false to allow provisioning parts on other sites.
@@ -359,7 +361,7 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         return emptyRules;
     }
 
-    private buildSummaryCountCharts( title: string, refinerObj: IRefinerLayer , version: 'refinerCount' | 'perato') {
+    private buildSummaryCountCharts( title: string, refinerObj: IRefinerLayer , chartTypes: ICSSChartTypes[] ) {
         let resultSummary = null;
 
         let labels = refinerObj.childrenKeys ;
@@ -368,10 +370,8 @@ export default class DrillDown extends React.Component<IDrillDownProps, IDrillDo
         let chartData : ICSSChartSeries = {
             title: title,
             labels: labels,
-            chartType: 'bar',
-            stacked: version === 'refinerCount' ? true : false,
+            chartTypes: chartTypes,
             barValueAsPercent: false,
-            sortStack: version === 'perato' ? 'dec' : false,
 
             //The string value here must match the object key below
             barValues: 'val1',
@@ -736,18 +736,18 @@ public componentDidUpdate(prevProps){
 
                 let summaryCharts = [];
                 if ( this.state.showSummary === true ) {
-                    summaryCharts.push( this.buildSummaryCountCharts( 'Refiner1', this.state.refinerObj, 'refinerCount' ) );
+                    summaryCharts.push( this.buildSummaryCountCharts( this.props.refiners[0], this.state.refinerObj, RefinerChartTypes ) );
 
                     if ( this.state.searchMeta[0] !== 'All' ) {
+
                         let childIndex0 = this.state.refinerObj.childrenKeys.indexOf(this.state.searchMeta[0]);
-
-                        summaryCharts.push( this.buildSummaryCountCharts( 'Refiner2', this.state.refinerObj.childrenObjs[childIndex0], 'refinerCount' ) );
-                        if ( this.state.searchMeta.length > 1 && this.state.searchMeta[1] !== 'All' ) {
-                            let childIndex1 = this.state.refinerObj.childrenObjs[childIndex0].childrenKeys.indexOf(this.state.searchMeta[1]);
-                            
-                            summaryCharts.push( this.buildSummaryCountCharts( 'Refiner3', this.state.refinerObj.childrenObjs[childIndex0].childrenObjs[childIndex1], 'refinerCount' ) );
-
+                        summaryCharts.push( this.buildSummaryCountCharts( this.props.refiners[1], this.state.refinerObj.childrenObjs[childIndex0], RefinerChartTypes ) );
                         
+                        if ( this.state.searchMeta.length > 1 && this.state.searchMeta[1] !== 'All' ) {
+
+                            let childIndex1 = this.state.refinerObj.childrenObjs[childIndex0].childrenKeys.indexOf(this.state.searchMeta[1]);
+                            summaryCharts.push( this.buildSummaryCountCharts( this.props.refiners[2], this.state.refinerObj.childrenObjs[childIndex0].childrenObjs[childIndex1],  RefinerChartTypes ) );
+
                         }
 
                     }
